@@ -3,8 +3,8 @@
 ## Purpose
 
 Implement each task defined in the approved plan, in the order specified
-by the dependency graph in `plan.md`. Each task is a self-contained PR that moves
-the feature forward incrementally.
+by the dependency graph in `plan.md`. Each task is a self-contained unit of work
+that moves the feature forward incrementally.
 
 This stage produces working code that directly implements the approved design.
 No architectural decisions should be made here — if a design gap is discovered,
@@ -113,24 +113,20 @@ Do not open a PR if:
 - Any acceptance criterion lacks a test
 - Tests were written after (or simultaneously with) implementation rather than before
 
-### Step 6 — Commit and open PR
+### Step 6 — Present task completion for engineer review
 
-```
-Branch: agentic/<feature>/05-impl/TASK-NNN
-PR title: agentic/<feature>/impl: TASK-NNN [task title]
-```
-
-PR description must include:
-- What was implemented (brief summary)
-- Which acceptance criteria are met (checklist)
-- Any implementation decisions made that deviate from or extend the design (and why)
+After each task, present a brief summary:
+- What was implemented
+- Which acceptance criteria are met (checklist from task definition)
+- Any implementation decisions that deviate from or extend the design (and why)
 - Any issues discovered (design gaps, edge cases not in the task) — do not fix silently
-- Files created/modified list
+- Files created/modified
 
-### Step 7 — Wait for PR approval before next task
+Update `state.yaml` to record the task as complete.
 
-Do not begin the next task until the current task's PR is merged.
-After merge, update `state.yaml` with task completion.
+The engineer may review at any cadence they choose — after every task, after a group
+of tasks, or at stage end. Continue to the next task unless the engineer explicitly
+asks to pause.
 
 ---
 
@@ -143,7 +139,7 @@ Stop implementing and surface a question if:
 - An external integration does not behave as documented in the design
 - A discovered constraint makes the task as defined impossible or unsafe
 
-When stopping, comment on the open PR with `[DESIGN GAP]` or `[BLOCKER]` and describe the issue.
+When stopping, surface the issue to the engineer immediately with `[DESIGN GAP]` or `[BLOCKER]` and describe the issue clearly.
 
 ---
 
@@ -166,12 +162,13 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 - [ ] All acceptance criteria for TASK-NNN are met
 - [ ] Code follows existing codebase conventions
 - [ ] No debug code or TODOs left (or TODOs are tracked as new tasks)
-- [ ] PR description is complete
-- [ ] Engineer reviews and merges PR
+- [ ] Task summary presented to engineer
+- [ ] `state.yaml` updated with task completion
 
 ## Done Criteria (full stage)
 
-- [ ] All tasks in plan.md are merged
+- [ ] All tasks in plan.md are complete
+- [ ] Engineer approves the full implementation stage
 - [ ] `state.yaml` updated: `current_stage: 6`, `stage_05: approved`
 
 ---
@@ -183,7 +180,6 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 - Acceptance criteria without a corresponding test — every criterion needs coverage
 - Implementing features not in the current task ("while I'm here...")
 - Silently making architectural decisions that deviate from the design
-- Opening a PR before all acceptance criteria are met
+- Moving to the next task before all acceptance criteria for the current one are met
 - Hardcoding environment-specific values
-- Starting the next task before the current PR is merged
 - Fixing unrelated bugs without noting them separately

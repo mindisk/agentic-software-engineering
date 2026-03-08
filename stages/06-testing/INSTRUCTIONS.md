@@ -82,19 +82,16 @@ Do not mark a test as passing if it is not passing.
 Run coverage analysis. If coverage falls below the target in test-plan.md,
 add tests to cover the gap before opening the PR.
 
-### Step 7 — Commit and open PR
+### Step 7 — Present for engineer approval
 
-```
-Branch: agentic/<feature>/06-testing
-PR title: agentic/<feature>/06-testing: test suite
-```
-
-PR description must include:
-- Summary of test coverage (X unit, Y integration, Z E2E)
+Present a summary to the engineer:
+- Test coverage summary (X unit, Y integration, Z E2E)
 - Coverage percentage achieved vs. target
 - Any requirements that could not be tested and why
-- All tests passing (or honest statement of failures with explanation)
-- Filled-in checklists from `protocols/pr-checklist.md`
+- Honest statement of test results (all passing, or failures with explanation)
+- Filled-in Stage 06 review checklist (from Protocol 4)
+
+**Wait for explicit engineer approval before proceeding to Stage 07.**
 
 ---
 
@@ -115,8 +112,8 @@ PR description must include:
 - [ ] All tests pass
 - [ ] Coverage meets target defined in test-plan.md
 - [ ] `test-results.md` is complete and accurate
-- [ ] PR open with checklists completed
-- [ ] Engineer merges PR → `APPROVED`
+- [ ] Stage 06 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 7`, `stage_06: approved`
 
 ---

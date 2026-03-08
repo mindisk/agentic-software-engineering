@@ -118,12 +118,16 @@ Before opening the PR, verify:
 - Every entity → at least one task (usually a migration task)
 - Error handling → explicit tasks, not implied by other tasks
 
-### Step 7 — Commit and open PR
+### Step 7 — Present for engineer approval
 
-```
-Branch:   agentic/<feature>/04-planning
-PR title: agentic/<feature>/04-planning: user stories and implementation plan
-```
+Present a summary to the engineer:
+- User story count and total task count
+- Estimated effort range
+- First immediately-actionable task (TASK-001)
+- Any planning risks or open items
+- Filled-in Stage 04 review checklist (from Protocol 4)
+
+**Wait for explicit engineer approval before proceeding to Stage 05.**
 
 ---
 
@@ -136,8 +140,8 @@ PR title: agentic/<feature>/04-planning: user stories and implementation plan
 - [ ] First task is immediately actionable
 - [ ] No circular dependencies
 - [ ] Every design element covered by at least one task
-- [ ] PR open with Stage 04 checklist completed
-- [ ] Engineer merges PR → `APPROVED`
+- [ ] Stage 04 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 5`, `stage_04: approved`
 
 ---

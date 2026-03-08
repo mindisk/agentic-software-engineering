@@ -59,29 +59,25 @@ using the template at `stages/01-intake/templates/project-brief.md`.
 Fill in every section. Do not leave any section empty or partially filled.
 If something is genuinely unknown after Q&A, record it as an Open Item.
 
-### Step 4 — Self-review before PR
+### Step 4 — Self-review and present for engineer approval
 
-Before opening the PR, verify:
+Before presenting the artifact, verify:
 
 - Would a new engineer understand what is being built and why from this doc alone?
 - Are all scope boundaries explicit?
 - Are success criteria measurable?
 - Are all assumptions listed?
 
-### Step 5 — Commit and open PR
-
-```
-Branch: agentic/<feature>/01-intake
-PR title: agentic/<feature>/01-intake: project brief
-```
-
-PR description must include:
+Present a summary to the engineer:
 - One-paragraph summary of what the feature is
 - List of questions asked and answers received
 - List of assumptions made
-- Filled-in general checklist from `protocols/pr-checklist.md`
-- Stage 01 specific checklist from `protocols/pr-checklist.md`
-- Any open items that the engineer should be aware of
+- Filled-in Stage 01 review checklist (from Protocol 4)
+- Any open items the engineer should be aware of
+
+**Wait for explicit engineer approval before proceeding to Stage 02.**
+Approval can be as simple as "looks good" or "proceed". If the engineer requests
+changes, update the artifact and re-present. Do not advance the stage until approved.
 
 ---
 
@@ -97,8 +93,8 @@ PR description must include:
 
 The stage is complete when:
 - [ ] `project-brief.md` is written with status `REVIEW`
-- [ ] PR is open with all checklist items addressed
-- [ ] Engineer merges the PR (status becomes `APPROVED`)
+- [ ] Stage 01 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` is updated: `current_stage: 2`, `stage_01: approved`
 
 ---
