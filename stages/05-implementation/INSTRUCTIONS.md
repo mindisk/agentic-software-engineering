@@ -47,9 +47,33 @@ Before writing any code, ask if:
 Keep questions minimal. Implementation details that fall within the design spec
 should be decided by the agent, documented in code comments if non-obvious.
 
-### Step 4 — Implement
+### Step 4 — Implement using TDD (Red → Green → Refactor)
 
-Write the code. Follow these rules:
+All implementation follows Test-Driven Development. Tests are written **before**
+the production code that satisfies them. This is non-negotiable.
+
+#### Step 4a — Write failing tests (Red)
+
+Before writing any production code:
+
+1. Derive test cases directly from the task's **acceptance criteria** and from
+   the user story's **Definition of Done** in `user-stories.md`.
+2. Write tests that call the interface/function/endpoint as it will be defined —
+   even though it does not exist yet.
+3. Confirm tests **fail** (or fail to compile/import) before proceeding.
+   A test that passes without implementation is a broken test.
+
+**Test naming convention:** names must describe the behaviour under test, not
+the implementation. Format: `<unit>_<scenario>_<expected outcome>`.
+Example: `createUser_duplicateEmail_returns409`
+
+**One acceptance criterion = at least one test.** Multiple tests per criterion
+are encouraged for edge cases. Error paths are always explicit test cases, not
+implied by happy-path coverage.
+
+#### Step 4b — Implement to make tests pass (Green)
+
+Write the minimum production code needed to make all failing tests pass.
 
 **Correctness first:**
 - Implement exactly what the task defines — no more, no less
@@ -72,10 +96,22 @@ Write the code. Follow these rules:
 - Do not refactor unrelated code
 - If you find a bug in existing code, note it but do not fix it in this PR
 
+#### Step 4c — Refactor (Refactor)
+
+With all tests green, clean up the implementation:
+- Remove duplication
+- Improve readability
+- Rename for clarity
+
+Run tests again after refactoring. All must still pass before proceeding.
+
 ### Step 5 — Self-verify acceptance criteria
 
-Before committing, verify each acceptance criterion in the task definition is met.
-Do not open a PR if acceptance criteria are not fully met.
+Run all tests and confirm every acceptance criterion in the task definition is met.
+Do not open a PR if:
+- Any test is failing
+- Any acceptance criterion lacks a test
+- Tests were written after (or simultaneously with) implementation rather than before
 
 ### Step 6 — Commit and open PR
 
@@ -124,6 +160,9 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 
 ## Done Criteria (per task)
 
+- [ ] Tests written **before** implementation (TDD red-green-refactor followed)
+- [ ] Every acceptance criterion has at least one test
+- [ ] All tests pass
 - [ ] All acceptance criteria for TASK-NNN are met
 - [ ] Code follows existing codebase conventions
 - [ ] No debug code or TODOs left (or TODOs are tracked as new tasks)
@@ -139,6 +178,9 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 
 ## Common Failure Modes to Avoid
 
+- Writing tests after (or during) implementation — TDD requires tests to fail first
+- Tests that pass without any implementation — the test is wrong or testing nothing
+- Acceptance criteria without a corresponding test — every criterion needs coverage
 - Implementing features not in the current task ("while I'm here...")
 - Silently making architectural decisions that deviate from the design
 - Opening a PR before all acceptance criteria are met

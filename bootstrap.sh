@@ -47,12 +47,55 @@ echo ""
 
 mkdir -p "$PRODUCT_REPO/.agentic/features"
 
+# ------------------------------------------------------------------
+# Determine where artifacts (work documents) will be stored.
+# They do not need to live inside the product repo.
+# ------------------------------------------------------------------
+
+echo "Where should pipeline artifacts (specs, designs, plans) be stored?"
+echo ""
+echo "  1) Inside the product repo  → .agentic/features/  (committed with code)"
+echo "  2) Outside the product repo → ~/agentic-artifacts/$PROJECT_NAME/  (local only)"
+echo "  3) Custom path              → enter your own absolute path"
+echo ""
+read -rp "Choice [1/2/3, default=2]: " ARTIFACTS_CHOICE
+ARTIFACTS_CHOICE="${ARTIFACTS_CHOICE:-2}"
+
+case "$ARTIFACTS_CHOICE" in
+  1)
+    ARTIFACTS_PATH=".agentic/features"
+    ;;
+  3)
+    read -rp "Artifacts path (absolute): " ARTIFACTS_PATH
+    ;;
+  *)
+    ARTIFACTS_PATH="$HOME/agentic-artifacts/$(echo "$PROJECT_NAME" | tr '[:upper:] ' '[:lower:]-')"
+    ;;
+esac
+
+# Resolve relative path to absolute if choice was 1
+if [ "$ARTIFACTS_CHOICE" = "1" ]; then
+  ARTIFACTS_PATH_DISPLAY=".agentic/features  (inside product repo)"
+else
+  ARTIFACTS_PATH_DISPLAY="$ARTIFACTS_PATH"
+  mkdir -p "$ARTIFACTS_PATH"
+fi
+
+echo "Artifacts path: $ARTIFACTS_PATH_DISPLAY"
+
 cat > "$PRODUCT_REPO/.agentic/config.yaml" <<EOF
 project:
   name: "$PROJECT_NAME"
 
 engine:
   path: "$ENGINE_DIR"
+
+artifacts:
+  # Where pipeline work documents (specs, designs, plans) are stored.
+  # Can be inside the product repo (.agentic/features) or any absolute path
+  # outside the repo. Defaults to an external directory so work documents
+  # are not automatically committed with product code.
+  path: "$ARTIFACTS_PATH"
 EOF
 
 echo "Created: .agentic/config.yaml"
@@ -81,7 +124,13 @@ echo ""
 echo "Bootstrap complete. Next steps:"
 echo ""
 echo "  1. Commit the pipeline config to your product repo:"
+if [ "$ARTIFACTS_CHOICE" = "1" ]; then
 echo "       git add .agentic/ .claude/ .github/"
+else
+echo "       git add .agentic/config.yaml .claude/ .github/"
+echo "       # Artifacts are stored outside the repo at: $ARTIFACTS_PATH"
+echo "       # Add that path to .gitignore if needed, or leave it local-only."
+fi
 echo "       git commit -m 'chore: add agentic pipeline'"
 echo ""
 echo "  2. Open the product repo in Claude Code or VSCode Copilot."

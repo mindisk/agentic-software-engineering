@@ -39,11 +39,13 @@ you surface it immediately. You never silently pick an interpretation.
 
 On every session start, before anything else:
 
-### 1. Find the engine
+### 1. Find the engine and artifacts location
 
-Read `.agentic/config.yaml` and get `engine.path`.
+Read `.agentic/config.yaml` and get:
+- `engine.path` — where stage instructions and templates live
+- `artifacts.path` — where pipeline work documents are written (may be outside the product repo)
 
-Verify it exists:
+Verify the engine exists:
 ```bash
 ls <engine.path>/stages/
 ```
@@ -51,6 +53,13 @@ ls <engine.path>/stages/
 If not found, tell the engineer:
 > "The engine repo is not found at `<path>`. Please clone it there or update
 > `engine.path` in `.agentic/config.yaml`."
+
+For `artifacts.path`:
+- If it is an absolute path outside the repo, create it if it does not exist.
+- If it is a relative path (e.g. `.agentic/features`), resolve it relative to the product repo root.
+- All artifact reads and writes use `<artifacts.path>/` as the base — never assume `.agentic/features/` is the location.
+
+If `artifacts.path` is missing from `config.yaml`, default to `.agentic/features` (relative to product repo) and note the assumption.
 
 ### 2. Read your memory
 
@@ -101,10 +110,13 @@ qa_log: []
 open_items: []
 ```
 
-Also create the artifact directory structure:
+Also create the artifact directory structure at the configured path:
 ```bash
-mkdir -p .agentic/features/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
+mkdir -p <artifacts.path>/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
 ```
+
+Note: `state.yaml` always lives in the product repo at `.agentic/features/<feature>/state.yaml`
+regardless of where artifacts are stored. This keeps pipeline state versioned with the code.
 
 ---
 
@@ -141,8 +153,11 @@ Read all prior approved artifacts for context:
 ## Step 4 — Produce Artifacts
 
 Use templates from `<engine.path>/stages/<stage>/templates/`.
-Write to `.agentic/features/<feature>/artifacts/<NN-stage>/`.
+Write to `<artifacts.path>/<feature>/artifacts/<NN-stage>/`.
 Follow the Artifact Standards below exactly.
+
+`<artifacts.path>` is read from `config.yaml`. It may be outside the product repo —
+do not assume artifacts live under the product repo root.
 
 ---
 
@@ -160,13 +175,19 @@ Read `pr_gates` from `state.yaml` and behave accordingly.
 
 ```bash
 git checkout -b agentic/<feature>/<stage-name>
-git add .agentic/features/<feature>/
+# Always commit state.yaml (it lives in the product repo)
+git add .agentic/features/<feature>/state.yaml
+# Only add artifacts if artifacts.path is inside the product repo
+# (i.e. artifacts.path starts with a relative path or the product repo root)
 git commit -m "agentic(<feature>/<stage>): <description>"
 # open pull request
 ```
 
 PR description must include: summary, questions and answers, assumptions,
 filled-in PR checklist for this stage, and any open items.
+
+If `artifacts.path` is outside the product repo, attach or link key artifacts
+(e.g. paste the design summary) in the PR description so reviewers can access them.
 
 **STOP. Do not begin the next stage until the engineer merges the PR.**
 
@@ -175,7 +196,8 @@ filled-in PR checklist for this stage, and any open items.
 ```bash
 # work on a single feature branch throughout
 git checkout -b agentic/<feature>   # only on first stage
-git add .agentic/features/<feature>/
+git add .agentic/features/<feature>/state.yaml
+# Add artifact files only if they are inside the product repo
 git commit -m "agentic(<feature>/<stage>): <description>"
 # continue immediately to the next stage — no PR, no wait
 ```
@@ -204,7 +226,7 @@ PR description is a summary of all stages, key decisions, and the review report.
 | 01 | Intake | `project-brief.md` |
 | 02 | Requirements | `SRS.md`, `use-cases.md` |
 | 03 | Design | `design.md` · `api-contracts.md` (only if external API) |
-| 04 | Planning | `plan.md` |
+| 04 | Planning | `user-stories.md`, `plan.md` |
 | 05 | Implementation | Source code + `TASK-NNN-notes.md` (one commit/PR per task) |
 | 06 | Testing | `test-plan.md`, `test-results.md` + test code |
 | 07 | Review | `review-report.md` (includes traceability) |
@@ -390,7 +412,7 @@ Consistency makes review faster and traceability possible across stages.
 Every pipeline run is scoped to a single feature. Artifacts belong exclusively
 to the feature that produced them.
 
-- Artifacts live under `.agentic/features/<feature-name>/artifacts/`
+- Artifacts live under `<artifacts.path>/<feature-name>/artifacts/` (configured in `config.yaml`)
 - No artifact is shared between features
 - A feature MAY read another feature's APPROVED artifacts for contextual awareness —
   mark it clearly: `> Context reference: features/other/artifacts/03-design/design.md`
@@ -454,6 +476,7 @@ approved_by: []
 | Use Case | `UC-NNN` | `UC-012` |
 | Component | `COMP-NN` | `COMP-04` |
 | API Endpoint | `API-NNN` | `API-007` |
+| User Story | `US-NNN` | `US-012` |
 | Task | `TASK-NNN` | `TASK-023` |
 | Test Case | `TC-NNN` | `TC-008` |
 | Risk | `RISK-NN` | `RISK-02` |
@@ -494,7 +517,7 @@ Only APPROVED artifacts are used as formal inputs to the next stage.
 ### File Naming
 
 ```
-.agentic/features/<feature>/artifacts/<NN-stage-name>/<artifact-name>.md
+<artifacts.path>/<feature>/artifacts/<NN-stage-name>/<artifact-name>.md
 ```
 
 ---
@@ -559,8 +582,12 @@ Include a filled-in version of the relevant checklist in every PR description.
 **Gate question:** *"Can a developer implement this system from design.md alone without asking architectural questions?"*
 
 ### Stage 04 — Implementation Planning
-**PR title:** `agentic/<feature>/04-planning: implementation plan`
+**PR title:** `agentic/<feature>/04-planning: user stories and implementation plan`
 
+- [ ] Every functional requirement (FR-NNN) maps to at least one user story (US-NNN)
+- [ ] Each story has the canonical format: "As a [role], I want [goal], so that [reason]"
+- [ ] Each story has a Definition of Done with observable, user-facing outcomes
+- [ ] Every subtask in `user-stories.md` has a `TASK-NNN` reference
 - [ ] Every task has: ID, description, acceptance criteria, dependencies, effort
 - [ ] Task granularity is appropriate — each implementable in a single focused session
 - [ ] Every design element (component, entity, endpoint) maps to at least one task
@@ -573,6 +600,9 @@ Include a filled-in version of the relevant checklist in every PR description.
 ### Stage 05 — Implementation
 **PR title:** `agentic/<feature>/05-impl: TASK-NNN [task title]`
 
+- [ ] Tests were written **before** production code (TDD red-green-refactor)
+- [ ] Every acceptance criterion has at least one test
+- [ ] All tests pass
 - [ ] Code implements exactly what TASK-NNN defines — no more, no less
 - [ ] Code matches the design in design.md
 - [ ] Naming conventions are consistent with the codebase
@@ -582,7 +612,7 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] No obvious security issues
 - [ ] All acceptance criteria are met
 
-**Gate question:** *"Does this code do what TASK-NNN says, and nothing else?"*
+**Gate question:** *"Were tests written first, do they all pass, and does the code do only what TASK-NNN says?"*
 
 ### Stage 06 — Testing
 **PR title:** `agentic/<feature>/06-testing: test suite`

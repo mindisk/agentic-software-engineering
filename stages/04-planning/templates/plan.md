@@ -25,6 +25,7 @@ This document is the execution guide for Stage 05.
 
 - `.agentic/features/FEATURE_NAME/artifacts/02-requirements/SRS.md` (APPROVED)
 - `.agentic/features/FEATURE_NAME/artifacts/03-design/design.md` (APPROVED)
+- `.agentic/features/FEATURE_NAME/artifacts/04-planning/user-stories.md` (DRAFT — written in same stage)
 
 ---
 
