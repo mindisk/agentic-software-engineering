@@ -56,7 +56,7 @@ Any requirement not fully traced is a gap. Document it explicitly.
 
 ### Step 3 — Review implementation against design
 
-Compare implemented code (from implementation notes and task PRs) against
+Compare implemented code (from implementation notes) against
 the approved design. Flag:
 - Deviations that were not reviewed
 - Architectural decisions made during implementation without approval
@@ -82,14 +82,17 @@ Complete all eight sections:
 7. Remaining risks
 8. Sign-off recommendation
 
-### Step 6 — Commit and open final PR
+### Step 6 — Present review report for engineer sign-off
 
-```
-Branch:   agentic/<feature>/07-review
-PR title: agentic/<feature>/07-review: review report
-```
+Present a summary to the engineer:
+- Requirements coverage (X/Y fully covered, any gaps)
+- Test results summary
+- Design deviations (if any)
+- Open items status
+- Sign-off recommendation with honest rationale
+- Filled-in Stage 07 review checklist (from Protocol 4)
 
-The engineer's merge of this PR is the formal sign-off on the feature.
+The engineer's explicit approval of the review report is the formal sign-off on the feature.
 
 ---
 
@@ -100,9 +103,9 @@ The engineer's merge of this PR is the formal sign-off on the feature.
 - [ ] All gaps documented — none hidden
 - [ ] All open items accounted for
 - [ ] Honest sign-off recommendation given
-- [ ] PR open with Stage 07 checklist completed
-- [ ] Engineer merges PR → feature complete
-- [ ] `state.yaml` updated: `stage_07: approved`, `feature_status: complete`
+- [ ] Stage 07 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves the review report
+- [ ] `state.yaml` updated: `current_stage: 8`, `stage_07: approved`
 
 ---
 

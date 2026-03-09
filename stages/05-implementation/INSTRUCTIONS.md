@@ -3,8 +3,8 @@
 ## Purpose
 
 Implement each task defined in the approved plan, in the order specified
-by the dependency graph in `plan.md`. Each task is a self-contained PR that moves
-the feature forward incrementally.
+by the dependency graph in `plan.md`. Each task is a self-contained unit of work
+that moves the feature forward incrementally.
 
 This stage produces working code that directly implements the approved design.
 No architectural decisions should be made here — if a design gap is discovered,
@@ -47,9 +47,33 @@ Before writing any code, ask if:
 Keep questions minimal. Implementation details that fall within the design spec
 should be decided by the agent, documented in code comments if non-obvious.
 
-### Step 4 — Implement
+### Step 4 — Implement using TDD (Red → Green → Refactor)
 
-Write the code. Follow these rules:
+All implementation follows Test-Driven Development. Tests are written **before**
+the production code that satisfies them. This is non-negotiable.
+
+#### Step 4a — Write failing tests (Red)
+
+Before writing any production code:
+
+1. Derive test cases directly from the task's **acceptance criteria** and from
+   the user story's **Definition of Done** in `user-stories.md`.
+2. Write tests that call the interface/function/endpoint as it will be defined —
+   even though it does not exist yet.
+3. Confirm tests **fail** (or fail to compile/import) before proceeding.
+   A test that passes without implementation is a broken test.
+
+**Test naming convention:** names must describe the behaviour under test, not
+the implementation. Format: `<unit>_<scenario>_<expected outcome>`.
+Example: `createUser_duplicateEmail_returns409`
+
+**One acceptance criterion = at least one test.** Multiple tests per criterion
+are encouraged for edge cases. Error paths are always explicit test cases, not
+implied by happy-path coverage.
+
+#### Step 4b — Implement to make tests pass (Green)
+
+Write the minimum production code needed to make all failing tests pass.
 
 **Correctness first:**
 - Implement exactly what the task defines — no more, no less
@@ -72,29 +96,37 @@ Write the code. Follow these rules:
 - Do not refactor unrelated code
 - If you find a bug in existing code, note it but do not fix it in this PR
 
+#### Step 4c — Refactor (Refactor)
+
+With all tests green, clean up the implementation:
+- Remove duplication
+- Improve readability
+- Rename for clarity
+
+Run tests again after refactoring. All must still pass before proceeding.
+
 ### Step 5 — Self-verify acceptance criteria
 
-Before committing, verify each acceptance criterion in the task definition is met.
-Do not open a PR if acceptance criteria are not fully met.
+Run all tests and confirm every acceptance criterion in the task definition is met.
+Do not open a PR if:
+- Any test is failing
+- Any acceptance criterion lacks a test
+- Tests were written after (or simultaneously with) implementation rather than before
 
-### Step 6 — Commit and open PR
+### Step 6 — Present task completion for engineer review
 
-```
-Branch: agentic/<feature>/05-impl/TASK-NNN
-PR title: agentic/<feature>/impl: TASK-NNN [task title]
-```
-
-PR description must include:
-- What was implemented (brief summary)
-- Which acceptance criteria are met (checklist)
-- Any implementation decisions made that deviate from or extend the design (and why)
+After each task, present a brief summary:
+- What was implemented
+- Which acceptance criteria are met (checklist from task definition)
+- Any implementation decisions that deviate from or extend the design (and why)
 - Any issues discovered (design gaps, edge cases not in the task) — do not fix silently
-- Files created/modified list
+- Files created/modified
 
-### Step 7 — Wait for PR approval before next task
+Update `state.yaml` to record the task as complete.
 
-Do not begin the next task until the current task's PR is merged.
-After merge, update `state.yaml` with task completion.
+The engineer may review at any cadence they choose — after every task, after a group
+of tasks, or at stage end. Continue to the next task unless the engineer explicitly
+asks to pause.
 
 ---
 
@@ -107,7 +139,7 @@ Stop implementing and surface a question if:
 - An external integration does not behave as documented in the design
 - A discovered constraint makes the task as defined impossible or unsafe
 
-When stopping, comment on the open PR with `[DESIGN GAP]` or `[BLOCKER]` and describe the issue.
+When stopping, surface the issue to the engineer immediately with `[DESIGN GAP]` or `[BLOCKER]` and describe the issue clearly.
 
 ---
 
@@ -124,24 +156,30 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 
 ## Done Criteria (per task)
 
+- [ ] Tests written **before** implementation (TDD red-green-refactor followed)
+- [ ] Every acceptance criterion has at least one test
+- [ ] All tests pass
 - [ ] All acceptance criteria for TASK-NNN are met
 - [ ] Code follows existing codebase conventions
 - [ ] No debug code or TODOs left (or TODOs are tracked as new tasks)
-- [ ] PR description is complete
-- [ ] Engineer reviews and merges PR
+- [ ] Task summary presented to engineer
+- [ ] `state.yaml` updated with task completion
 
 ## Done Criteria (full stage)
 
-- [ ] All tasks in plan.md are merged
+- [ ] All tasks in plan.md are complete
+- [ ] Engineer approves the full implementation stage
 - [ ] `state.yaml` updated: `current_stage: 6`, `stage_05: approved`
 
 ---
 
 ## Common Failure Modes to Avoid
 
+- Writing tests after (or during) implementation — TDD requires tests to fail first
+- Tests that pass without any implementation — the test is wrong or testing nothing
+- Acceptance criteria without a corresponding test — every criterion needs coverage
 - Implementing features not in the current task ("while I'm here...")
 - Silently making architectural decisions that deviate from the design
-- Opening a PR before all acceptance criteria are met
+- Moving to the next task before all acceptance criteria for the current one are met
 - Hardcoding environment-specific values
-- Starting the next task before the current PR is merged
 - Fixing unrelated bugs without noting them separately

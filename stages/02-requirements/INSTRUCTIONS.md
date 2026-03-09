@@ -77,28 +77,23 @@ For each primary use case:
 - Error/exception flows
 - Pre-conditions and post-conditions
 
-### Step 5 — Requirements validation pass
+### Step 5 — Requirements validation pass and present for engineer approval
 
-Before opening the PR:
+Before presenting:
 - Every FR-NNN traces back to something in the project brief
 - No two requirements contradict each other
 - No requirement is untestable
 - NFRs have measurable targets (no "must be fast")
 - Edge cases are covered in use cases or flagged as `[OPEN]`
 
-### Step 6 — Commit and open PR
-
-```
-Branch: agentic/<feature>/02-requirements
-PR title: agentic/<feature>/02-requirements: SRS + use cases
-```
-
-PR description must include:
-- Summary of requirement count (X functional, Y non-functional, Z use cases)
+Present a summary to the engineer:
+- Requirement count (X functional, Y non-functional, Z use cases)
 - Any significant decisions made during this stage
 - Conflicts found and how they were resolved
 - Open items carried forward
-- Filled-in checklists from `protocols/pr-checklist.md`
+- Filled-in Stage 02 review checklist (from Protocol 4)
+
+**Wait for explicit engineer approval before proceeding to Stage 03.**
 
 ---
 
@@ -117,8 +112,8 @@ PR description must include:
 - [ ] `use-cases.md` written with primary and alternative flows
 - [ ] All requirements traceable to `project-brief.md`
 - [ ] No untestable requirements
-- [ ] PR open with checklists completed
-- [ ] Engineer merges PR → status `APPROVED`
+- [ ] Stage 02 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 3`, `stage_02: approved`
 
 ---

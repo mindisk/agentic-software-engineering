@@ -73,19 +73,19 @@ Cover all six sections in order:
 Only produce this if Step 2 confirmed an external API is required.
 Use the template at `stages/03-design/templates/api-contracts.md`.
 
-### Step 5 — Traceability check
+### Step 5 — Traceability check and present for engineer approval
 
-Before opening the PR, verify every FR-NNN from the SRS maps to at least one
-design element (component, entity, or endpoint). Document this in the
-Requirements Traceability section of design.md. If any requirement is uncovered,
-resolve it before proceeding.
+Verify every FR-NNN from the SRS maps to at least one design element (component,
+entity, or endpoint). Document this in the Requirements Traceability section of
+design.md. If any requirement is uncovered, resolve it before presenting.
 
-### Step 6 — Commit and open PR
+Present a summary to the engineer:
+- Architecture overview (key components and their responsibilities)
+- Key technology decisions and rationale
+- Any design risks or open items
+- Filled-in Stage 03 review checklist (from Protocol 4)
 
-```
-Branch:   agentic/<feature>/03-design
-PR title: agentic/<feature>/03-design: system design
-```
+**Wait for explicit engineer approval before proceeding to Stage 04.**
 
 ---
 
@@ -96,8 +96,8 @@ PR title: agentic/<feature>/03-design: system design
 - [ ] Every FR-NNN traces to at least one design element
 - [ ] Technology choices have documented rationale
 - [ ] Security is addressed
-- [ ] PR open with Stage 03 checklist completed
-- [ ] Engineer merges PR → `APPROVED`
+- [ ] Stage 03 review checklist presented and all items addressed
+- [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 4`, `stage_03: approved`
 
 ---

@@ -24,10 +24,10 @@ engine at runtime — they are too stage-specific to embed here.
 Every stage begins with an early question pass. You surface uncertainty,
 flag conflicts, and wait for answers before producing anything.
 
-**Approval gates are per-feature, not universal.**
-Each feature declares whether it uses PR gates (`pr_gates: true`) or continuous
-commits with a single final PR (`pr_gates: false`). You ask once at feature
-initialisation and honour that choice throughout the entire feature lifecycle.
+**Approval gates are conversational, not PR-based.**
+At the end of each stage you present the artifact and a review checklist to the
+engineer and wait for explicit approval. The engineer decides when and how to
+commit or open PRs — that is outside the pipeline's responsibility.
 
 **You are honest, not optimistic.**
 If something is unclear, you say so. If a requirement conflicts with another,
@@ -39,11 +39,13 @@ you surface it immediately. You never silently pick an interpretation.
 
 On every session start, before anything else:
 
-### 1. Find the engine
+### 1. Find the engine and artifacts location
 
-Read `.agentic/config.yaml` and get `engine.path`.
+Read `.agentic/config.yaml` and get:
+- `engine.path` — where stage instructions and templates live
+- `artifacts.path` — where pipeline work documents are written (may be outside the product repo)
 
-Verify it exists:
+Verify the engine exists:
 ```bash
 ls <engine.path>/stages/
 ```
@@ -51,6 +53,13 @@ ls <engine.path>/stages/
 If not found, tell the engineer:
 > "The engine repo is not found at `<path>`. Please clone it there or update
 > `engine.path` in `.agentic/config.yaml`."
+
+For `artifacts.path`:
+- If it is an absolute path outside the repo, create it if it does not exist.
+- If it is a relative path (e.g. `.agentic/features`), resolve it relative to the product repo root.
+- All artifact reads and writes use `<artifacts.path>/` as the base — never assume `.agentic/features/` is the location.
+
+If `artifacts.path` is missing from `config.yaml`, default to `.agentic/features` (relative to product repo) and note the assumption.
 
 ### 2. Read your memory
 
@@ -71,20 +80,15 @@ This gives you: `current_stage`, `feature_status`, and the `qa_log`
 
 ### Initialising a new feature
 
-If no `state.yaml` exists for the feature, initialise it now. Ask the engineer:
+If no `state.yaml` exists for the feature, initialise it now.
 
-> **"Should I open a pull request after each stage for your review before
-> proceeding (recommended for complex features or team environments), or
-> commit continuously and open one final PR at the end?"**
-
-Then create `.agentic/features/<feature>/state.yaml`:
+Create `.agentic/features/<feature>/state.yaml`:
 
 ```yaml
 feature: <feature-name>
 project: <from config.yaml>
 current_stage: 1
 feature_status: in_progress
-pr_gates: true          # or false — per engineer answer
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 
@@ -96,15 +100,19 @@ stages:
   stage_05: pending
   stage_06: pending
   stage_07: pending
+  stage_08: pending
 
 qa_log: []
 open_items: []
 ```
 
-Also create the artifact directory structure:
+Also create the artifact directory structure at the configured path:
 ```bash
-mkdir -p .agentic/features/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
+mkdir -p <artifacts.path>/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
 ```
+
+Note: `state.yaml` always lives in the product repo at `.agentic/features/<feature>/state.yaml`
+regardless of where artifacts are stored. This keeps pipeline state versioned with the code.
 
 ---
 
@@ -141,8 +149,11 @@ Read all prior approved artifacts for context:
 ## Step 4 — Produce Artifacts
 
 Use templates from `<engine.path>/stages/<stage>/templates/`.
-Write to `.agentic/features/<feature>/artifacts/<NN-stage>/`.
+Write to `<artifacts.path>/<feature>/artifacts/<NN-stage>/`.
 Follow the Artifact Standards below exactly.
+
+`<artifacts.path>` is read from `config.yaml`. It may be outside the product repo —
+do not assume artifacts live under the product repo root.
 
 ---
 
@@ -152,44 +163,23 @@ Before committing, verify against the PR Checklist below for the current stage.
 
 ---
 
-## Step 6 — Commit and Gate
+## Step 6 — Present for Engineer Approval
 
-Read `pr_gates` from `state.yaml` and behave accordingly.
+At the end of each stage, present a concise summary to the engineer and the
+filled-in review checklist for that stage (from Protocol 4 below).
 
-### If `pr_gates: true` — PR gate per stage
+**Do not advance to the next stage until the engineer explicitly approves.**
+Approval can be a simple "looks good" or "proceed". If changes are requested,
+update the artifact and re-present.
 
-```bash
-git checkout -b agentic/<feature>/<stage-name>
-git add .agentic/features/<feature>/
-git commit -m "agentic(<feature>/<stage>): <description>"
-# open pull request
-```
-
-PR description must include: summary, questions and answers, assumptions,
-filled-in PR checklist for this stage, and any open items.
-
-**STOP. Do not begin the next stage until the engineer merges the PR.**
-
-### If `pr_gates: false` — continuous commit, one final PR
-
-```bash
-# work on a single feature branch throughout
-git checkout -b agentic/<feature>   # only on first stage
-git add .agentic/features/<feature>/
-git commit -m "agentic(<feature>/<stage>): <description>"
-# continue immediately to the next stage — no PR, no wait
-```
-
-After Stage 07 is complete, open **one pull request** for the entire feature:
-```
-Branch:   agentic/<feature>
-PR title: agentic/<feature>: complete feature
-```
-PR description is a summary of all stages, key decisions, and the review report.
+Git commits and pull requests are the engineer's responsibility, not the
+pipeline's. Work documents (artifacts) live at `<artifacts.path>` and production
+code lives in the product repo — the engineer decides when and how to bundle
+these into commits and PRs.
 
 ---
 
-## Step 7 — After PR Merge
+## Step 7 — After Engineer Approval
 
 1. Update `state.yaml`: increment `current_stage`, mark stage as `approved`
 2. Update your memory with key decisions and observations
@@ -204,16 +194,11 @@ PR description is a summary of all stages, key decisions, and the review report.
 | 01 | Intake | `project-brief.md` |
 | 02 | Requirements | `SRS.md`, `use-cases.md` |
 | 03 | Design | `design.md` · `api-contracts.md` (only if external API) |
-| 04 | Planning | `plan.md` |
-| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one commit/PR per task) |
+| 04 | Planning | `user-stories.md`, `plan.md` |
+| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) |
 | 06 | Testing | `test-plan.md`, `test-results.md` + test code |
 | 07 | Review | `review-report.md` (includes traceability) |
-
-For stage 05, each task gets its own branch and PR:
-```
-Branch: agentic/<feature>/05-impl/TASK-NNN
-PR title: agentic/<feature>/impl: TASK-NNN — <task title>
-```
+| 08 | Liveops Handover | `operations-manual.md` |
 
 ---
 
@@ -390,7 +375,7 @@ Consistency makes review faster and traceability possible across stages.
 Every pipeline run is scoped to a single feature. Artifacts belong exclusively
 to the feature that produced them.
 
-- Artifacts live under `.agentic/features/<feature-name>/artifacts/`
+- Artifacts live under `<artifacts.path>/<feature-name>/artifacts/` (configured in `config.yaml`)
 - No artifact is shared between features
 - A feature MAY read another feature's APPROVED artifacts for contextual awareness —
   mark it clearly: `> Context reference: features/other/artifacts/03-design/design.md`
@@ -454,6 +439,7 @@ approved_by: []
 | Use Case | `UC-NNN` | `UC-012` |
 | Component | `COMP-NN` | `COMP-04` |
 | API Endpoint | `API-NNN` | `API-007` |
+| User Story | `US-NNN` | `US-012` |
 | Task | `TASK-NNN` | `TASK-023` |
 | Test Case | `TC-NNN` | `TC-008` |
 | Risk | `RISK-NN` | `RISK-02` |
@@ -494,17 +480,18 @@ Only APPROVED artifacts are used as formal inputs to the next stage.
 ### File Naming
 
 ```
-.agentic/features/<feature>/artifacts/<NN-stage-name>/<artifact-name>.md
+<artifacts.path>/<feature>/artifacts/<NN-stage-name>/<artifact-name>.md
 ```
 
 ---
 
-## Protocol 4 — PR Checklist
+## Protocol 4 — Stage Review Checklist
 
-This defines what the engineer must verify before merging each stage's PR.
-**Merging = formal approval to proceed to the next stage.**
+This defines what the engineer must verify before approving each stage.
+**Explicit approval = permission to proceed to the next stage.**
 
-Include a filled-in version of the relevant checklist in every PR description.
+Present a filled-in version of the relevant checklist when asking for approval.
+The engineer reviews it conversationally — no PR or commit required.
 
 ### General Checklist (all stages)
 
@@ -518,8 +505,6 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] No unresolved `[BLOCKING]` open items
 
 ### Stage 01 — Intake
-**PR title:** `agentic/<feature>/01-intake: project brief`
-
 - [ ] Project purpose is clearly stated in one paragraph
 - [ ] Scope is unambiguous — "in scope" and "out of scope" are both explicit
 - [ ] Success criteria are measurable
@@ -528,10 +513,9 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] Risks are identified
 - [ ] The brief reflects actual intent — not the agent's interpretation
 
-**Gate question:** *"If a new engineer read only this brief, would they understand what we're building and why?"*
+**Approval question:** *"If a new engineer read only this brief, would they understand what we're building and why?"*
 
 ### Stage 02 — Requirements
-**PR title:** `agentic/<feature>/02-requirements: SRS + use cases`
 
 - [ ] Every functional requirement has an ID (FR-NNN), description, and acceptance criteria
 - [ ] Non-functional requirements are specific and measurable
@@ -542,10 +526,9 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] MVP scope is clearly delineated if applicable
 - [ ] All user personas are defined
 
-**Gate question:** *"Can we design a system from these requirements alone, without guessing?"*
+**Approval question:** *"Can we design a system from these requirements alone, without guessing?"*
 
 ### Stage 03 — System Design
-**PR title:** `agentic/<feature>/03-design: system design`
 
 - [ ] Architecture is described clearly at component level with diagram or equivalent
 - [ ] Every component has a defined responsibility and explicit boundary
@@ -556,11 +539,14 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] Every FR-NNN traces to at least one design element
 - [ ] `api-contracts.md` present if external API exists, noted N/A if not
 
-**Gate question:** *"Can a developer implement this system from design.md alone without asking architectural questions?"*
+**Approval question:** *"Can a developer implement this system from design.md alone without asking architectural questions?"*
 
 ### Stage 04 — Implementation Planning
-**PR title:** `agentic/<feature>/04-planning: implementation plan`
 
+- [ ] Every functional requirement (FR-NNN) maps to at least one user story (US-NNN)
+- [ ] Each story has the canonical format: "As a [role], I want [goal], so that [reason]"
+- [ ] Each story has a Definition of Done with observable, user-facing outcomes
+- [ ] Every subtask in `user-stories.md` has a `TASK-NNN` reference
 - [ ] Every task has: ID, description, acceptance criteria, dependencies, effort
 - [ ] Task granularity is appropriate — each implementable in a single focused session
 - [ ] Every design element (component, entity, endpoint) maps to at least one task
@@ -568,11 +554,13 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] Dependencies form no cycles
 - [ ] First task is immediately actionable
 
-**Gate question:** *"Can we start implementing TASK-001 right now without further discussion?"*
+**Approval question:** *"Can we start implementing TASK-001 right now without further discussion?"*
 
-### Stage 05 — Implementation
-**PR title:** `agentic/<feature>/05-impl: TASK-NNN [task title]`
+### Stage 05 — Implementation (per task)
 
+- [ ] Tests were written **before** production code (TDD red-green-refactor)
+- [ ] Every acceptance criterion has at least one test
+- [ ] All tests pass
 - [ ] Code implements exactly what TASK-NNN defines — no more, no less
 - [ ] Code matches the design in design.md
 - [ ] Naming conventions are consistent with the codebase
@@ -582,10 +570,9 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] No obvious security issues
 - [ ] All acceptance criteria are met
 
-**Gate question:** *"Does this code do what TASK-NNN says, and nothing else?"*
+**Approval question:** *"Were tests written first, do they all pass, and does the code do only what TASK-NNN says?"*
 
 ### Stage 06 — Testing
-**PR title:** `agentic/<feature>/06-testing: test suite`
 
 - [ ] Test plan defines: scope, test types, tools, coverage targets
 - [ ] Every FR-NNN has at least one test case (TC-NNN)
@@ -596,10 +583,9 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] Coverage meets the target
 - [ ] Test results are complete and honest — failures are not hidden
 
-**Gate question:** *"If these tests pass, are we confident the feature works correctly?"*
+**Approval question:** *"If these tests pass, are we confident the feature works correctly?"*
 
 ### Stage 07 — Review & Validation
-**PR title:** `agentic/<feature>/07-review: review report`
 
 - [ ] Every FR-NNN traced through design, implementation, and test in review-report.md
 - [ ] No requirements are untested
@@ -608,7 +594,22 @@ Include a filled-in version of the relevant checklist in every PR description.
 - [ ] Design deviations are documented and assessed
 - [ ] Sign-off recommendation is honest — not rubber-stamped
 
-**Gate question:** *"Would you be comfortable deploying this feature to production?"*
+**Approval question:** *"Would you be comfortable deploying this feature to production?"*
+
+### Stage 08 — Liveops Handover
+
+- [ ] Document is written for the correct audience (correct technical depth)
+- [ ] Feature overview explains ops impact, not just what was built
+- [ ] User guide covers all primary workflows step by step
+- [ ] Every configurable setting is documented with its default and valid range
+- [ ] Deployment steps are complete and ordered — no assumed knowledge
+- [ ] Post-deploy verification checklist is provided
+- [ ] At least one troubleshooting entry per significant failure mode
+- [ ] Rollback procedure is specific and actionable (not "revert the deploy")
+- [ ] Known limitations from the review report are carried into this document
+- [ ] Any gaps requiring liveops input are marked `[REQUIRES INPUT FROM: <role>]`
+
+**Approval question:** *"Could liveops deploy and support this feature from day one using only this document?"*
 
 ---
 
