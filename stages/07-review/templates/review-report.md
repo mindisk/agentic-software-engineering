@@ -36,14 +36,14 @@ Note any differences from the original project brief.]
 
 ## 2. Pipeline Summary
 
-| Stage | Status | PR | Key decisions |
-|-------|--------|-----|---------------|
-| 01 Intake | APPROVED | #[N] | [Key decision] |
-| 02 Requirements | APPROVED | #[N] | [Key decision] |
-| 03 Design | APPROVED | #[N] | [Key decision] |
-| 04 Planning | APPROVED | #[N] | [Task count, approach] |
-| 05 Implementation | APPROVED | #[N]–#[N] | [Deviations] |
-| 06 Testing | APPROVED | #[N] | [Coverage, results] |
+| Stage | Status | Key decisions |
+|-------|--------|---------------|
+| 01 Intake | APPROVED | [Key decision] |
+| 02 Requirements | APPROVED | [Key decision] |
+| 03 Design | APPROVED | [Key decision] |
+| 04 Planning | APPROVED | [Task count, approach] |
+| 05 Implementation | APPROVED | [Deviations] |
+| 06 Testing | APPROVED | [Coverage, results] |
 
 ---
 

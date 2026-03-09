@@ -104,8 +104,8 @@ The engineer's explicit approval of the review report is the formal sign-off on 
 - [ ] All open items accounted for
 - [ ] Honest sign-off recommendation given
 - [ ] Stage 07 review checklist presented and all items addressed
-- [ ] Engineer explicitly approves — feature complete
-- [ ] `state.yaml` updated: `stage_07: approved`, `feature_status: complete`
+- [ ] Engineer explicitly approves the review report
+- [ ] `state.yaml` updated: `current_stage: 8`, `stage_07: approved`
 
 ---
 

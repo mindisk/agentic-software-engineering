@@ -100,6 +100,7 @@ stages:
   stage_05: pending
   stage_06: pending
   stage_07: pending
+  stage_08: pending
 
 qa_log: []
 open_items: []
@@ -197,6 +198,7 @@ these into commits and PRs.
 | 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) |
 | 06 | Testing | `test-plan.md`, `test-results.md` + test code |
 | 07 | Review | `review-report.md` (includes traceability) |
+| 08 | Liveops Handover | `operations-manual.md` |
 
 ---
 
@@ -593,6 +595,21 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Sign-off recommendation is honest — not rubber-stamped
 
 **Approval question:** *"Would you be comfortable deploying this feature to production?"*
+
+### Stage 08 — Liveops Handover
+
+- [ ] Document is written for the correct audience (correct technical depth)
+- [ ] Feature overview explains ops impact, not just what was built
+- [ ] User guide covers all primary workflows step by step
+- [ ] Every configurable setting is documented with its default and valid range
+- [ ] Deployment steps are complete and ordered — no assumed knowledge
+- [ ] Post-deploy verification checklist is provided
+- [ ] At least one troubleshooting entry per significant failure mode
+- [ ] Rollback procedure is specific and actionable (not "revert the deploy")
+- [ ] Known limitations from the review report are carried into this document
+- [ ] Any gaps requiring liveops input are marked `[REQUIRES INPUT FROM: <role>]`
+
+**Approval question:** *"Could liveops deploy and support this feature from day one using only this document?"*
 
 ---
 
