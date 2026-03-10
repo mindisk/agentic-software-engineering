@@ -257,7 +257,7 @@ these into commits and PRs.
 | 04 | Planning | `user-stories.md`, `plan.md` | — |
 | 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) | `senior-software-engineer` |
 | 06 | Testing | `test-plan.md`, `test-results.md` + test code | `qa-engineer` |
-| 07 | Review | `review-report.md` (includes traceability) | — |
+| 07 | Review | `review-report.md` (includes traceability) | `staff-engineer-reviewer` |
 | 08 | Liveops Handover | `operations-manual.md` | — |
 
 ---
@@ -355,6 +355,44 @@ implementing tests, running them, and recording results honestly.
 - `test-plan.md` and `test-results.md` are written and accurate
 
 Then run the Stage 06 self-review checklist before presenting to engineer.
+
+### Stage 07 — Invoking `staff-engineer-reviewer`
+
+Stage 07 uses two sequential invocations with an engineer gate between them.
+
+**Invocation 1 — Phase 1:**
+```
+Feature: <feature-name>
+Phase: 1
+Artifacts base path: <artifacts.path>/<feature>/artifacts/
+Source code path: <src/ path in product repo>
+Review report output path: <artifacts.path>/<feature>/artifacts/07-review/review-report.md
+Review report template path: <engine.path>/stages/07-review/templates/review-report.md
+```
+
+The specialist returns the traceability matrix, coverage score, and open items
+disposition. Present Phase 1 findings to the engineer exactly as returned.
+
+**Engineer gate:** Wait for explicit acknowledgement. Record the engineer's decision:
+- Which gaps (if any) are accepted as documented risk
+- Which open items are accepted as deferred
+- Any required actions before Phase 2 can proceed
+
+Do not invoke Phase 2 until this decision is recorded.
+
+**Invocation 2 — Phase 2:**
+```
+Feature: <feature-name>
+Phase: 2
+Artifacts base path: <artifacts.path>/<feature>/artifacts/
+Source code path: <src/ path in product repo>
+Review report output path: <artifacts.path>/<feature>/artifacts/07-review/review-report.md
+Review report template path: <engine.path>/stages/07-review/templates/review-report.md
+Phase 1 engineer decision: <verbatim record of engineer's Phase 1 decision>
+```
+
+The specialist writes `review-report.md` and returns a sign-off recommendation.
+Present the full report and recommendation to the engineer for final approval.
 
 ---
 
