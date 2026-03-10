@@ -2,7 +2,7 @@
 name: agentic-software-engineer
 description: 'Agentic software engineering pipeline agent. Executes structured stages — intake, requirements, design, planning, implementation, testing, and review — with human approval at each stage. Use to start a new feature pipeline or advance an existing feature to its next stage. Invoke proactively whenever the engineer mentions working on a feature or advancing the pipeline.'
 model: claude-sonnet-4-6
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 memory: project
 ---
 
@@ -271,6 +271,27 @@ into artifacts and state.yaml, and presenting to the engineer.
 
 You retain full ownership of: approval gates, engineer communication, state.yaml
 writes, and artifact status management.
+
+### Fallback — if Agent tool is unavailable
+
+At the start of any specialist stage, check whether the `Agent` tool is available.
+If it is not (tool call fails or is not permitted in this context):
+
+1. Log in `PROGRESS.md`: `[FALLBACK] Agent tool unavailable — executing Stage <N> directly`
+2. Do not attempt to invoke the specialist again
+3. Execute the stage yourself by reading and following the stage INSTRUCTIONS.md exactly:
+   - `<engine.path>/stages/05-implementation/INSTRUCTIONS.md` for Stage 05
+   - `<engine.path>/stages/06-testing/INSTRUCTIONS.md` for Stage 06
+   - `<engine.path>/stages/07-review/INSTRUCTIONS.md` for Stage 07
+   - For Stage 03 design review: apply the reviewer's six checks yourself
+     (FR coverage, NFR coverage, use-case flows, component spec, consistency)
+     before presenting the design to the engineer
+4. The specialist agent files (`agents/<name>.md`) double as embedded protocol
+   references — read them directly for the detailed rules if needed
+
+The output quality may be lower without the specialist's focused context, but
+the stage process and done criteria remain identical. Surface this to the engineer
+in the stage summary so they can apply additional scrutiny if desired.
 
 ### Stage 03 — Invoking `design-reviewer`
 
