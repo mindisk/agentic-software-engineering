@@ -96,6 +96,12 @@ artifacts:
   # outside the repo. Defaults to an external directory so work documents
   # are not automatically committed with product code.
   path: "$ARTIFACTS_PATH"
+
+pipeline:
+  # Stage 05 implementation: report to engineer after every N tasks completed.
+  # The agent presents a checkpoint summary and waits for acknowledgement before continuing.
+  # Set to 0 to disable checkpoints (agent reports only at full stage end).
+  checkpoint_interval_tasks: 3
 EOF
 
 echo "Created: .agentic/config.yaml"

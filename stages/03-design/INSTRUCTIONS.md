@@ -102,6 +102,34 @@ Present a summary to the engineer:
 
 ---
 
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `project-brief.md` | Stage 01 | APPROVED | Scope and constraints context |
+| `SRS.md` | Stage 02 | APPROVED | Requirements to design against |
+| `use-cases.md` | Stage 02 | APPROVED | Flows to cover in the design |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `design.md` | `artifacts/03-design/design.md` | Stages 04, 05, 07, 08 |
+| `api-contracts.md` | `artifacts/03-design/api-contracts.md` | Stages 04, 05, 06, 07, 08 — only if external API exists |
+
+### Pre-Stage Verification
+
+Before beginning Stage 03, confirm:
+1. `artifacts/02-requirements/SRS.md` exists and has `status: APPROVED`
+2. `artifacts/02-requirements/use-cases.md` exists and has `status: APPROVED`
+3. `state.yaml` shows `stage_02: approved`
+
+If any check fails, stop and surface to engineer before proceeding.
+
+---
+
 ## Common Failure Modes
 
 - Designing in a vacuum without checking existing system patterns

@@ -45,13 +45,26 @@ Define the testing strategy before writing any test code:
 - What is explicitly out of scope for testing in this stage
 - Risk-based prioritisation (test high-risk areas first)
 
-### Step 3 — Write test cases (from SRS)
+### Step 3 — Write test cases (from SRS scenarios)
 
-Map every FR-NNN to at least one test case (TC-NNN).
-For each test case:
-- Test the happy path
-- Test the error/edge cases defined in use-cases.md
-- Test boundary conditions (empty inputs, maximum values, concurrent access)
+Every FR-NNN in the SRS has Given/When/Then scenarios — these are your primary source for TC-NNN.
+Map each scenario directly to a test case:
+
+```
+FR-001 / Scenario: Valid credentials  →  TC-001a
+FR-001 / Scenario: Invalid credentials  →  TC-001b
+```
+
+For each test case derived from a scenario:
+- The Given clause becomes the test setup (preconditions/fixtures)
+- The When clause becomes the action under test
+- The Then clause becomes the assertion
+
+After deriving from scenarios, add any additional test cases for:
+- Boundary conditions (empty inputs, maximum values, concurrent access)
+- Scenarios not explicit in the SRS but implied by NFR-NNN (load, timeout)
+
+Record the source scenario reference in each TC-NNN entry so traceability is explicit.
 
 ### Step 4 — Write the tests
 
@@ -115,6 +128,37 @@ Present a summary to the engineer:
 - [ ] Stage 06 review checklist presented and all items addressed
 - [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 7`, `stage_06: approved`
+
+---
+
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `SRS.md` | Stage 02 | APPROVED | Requirements to derive TC-NNN from |
+| `use-cases.md` | Stage 02 | APPROVED | Flows and edge cases to test |
+| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Contract tests |
+| `plan.md` | Stage 04 | APPROVED | Task acceptance criteria to verify |
+| Source code | Stage 05 | APPROVED | Implementation under test |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `test-plan.md` | `artifacts/06-testing/test-plan.md` | Stages 07, 08 |
+| `test-results.md` | `artifacts/06-testing/test-results.md` | Stages 07, 08 |
+| Test code | `tests/` (or project path) | Stage 07 |
+
+### Pre-Stage Verification
+
+Before beginning Stage 06, confirm:
+1. All Stage 05 tasks in `plan.md` are marked complete in `state.yaml`
+2. `artifacts/02-requirements/SRS.md` exists and has `status: APPROVED`
+3. `state.yaml` shows `stage_05: approved`
+
+If any check fails, stop and surface to engineer before proceeding.
 
 ---
 

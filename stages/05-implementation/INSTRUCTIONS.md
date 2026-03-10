@@ -105,28 +105,59 @@ With all tests green, clean up the implementation:
 
 Run tests again after refactoring. All must still pass before proceeding.
 
-### Step 5 — Self-verify acceptance criteria
+### Step 5 — Self-review before presenting to engineer
 
-Run all tests and confirm every acceptance criterion in the task definition is met.
-Do not open a PR if:
-- Any test is failing
-- Any acceptance criterion lacks a test
-- Tests were written after (or simultaneously with) implementation rather than before
+Before presenting the completed task, run a self-review. Fill in each item honestly —
+do not present until all items are `[PASS]`:
 
-### Step 6 — Present task completion for engineer review
+```
+[ ] All tests pass — zero failures
+[ ] Every acceptance criterion in the task definition has at least one test
+[ ] Tests were written before implementation (TDD red-green-refactor followed)
+[ ] No acceptance criterion is covered only by a trivial or vacuous test
+[ ] Implementation matches the interface defined in design.md / api-contracts.md
+[ ] No hardcoded values, debug code, or TODOs left uncommitted
+[ ] Any deviation from the design is documented in TASK-NNN-notes.md with rationale
+```
 
-After each task, present a brief summary:
+Do not present the task as complete if any item is `[FAIL]`. Fix it first, then re-run
+the self-review. If an item cannot be resolved, mark it `[BLOCKED]` and surface it
+as a `[DESIGN GAP]` or `[BLOCKER]` to the engineer — do not silently skip it.
+
+### Step 6 — Task completion and checkpoint reporting
+
+After completing each task:
+
+1. Record it as complete in `state.yaml` and log it in `PROGRESS.md`.
+2. Increment your internal task counter for this stage.
+
+**Checkpoint cadence** is set by `pipeline.checkpoint_interval_tasks` in
+`.agentic/config.yaml` (default: 3). Read this value at the start of Stage 05.
+
+- If `checkpoint_interval_tasks` is **0**: continue silently through all tasks
+  and report only at full stage end.
+- Otherwise: when `tasks_completed mod checkpoint_interval_tasks == 0`,
+  pause and present a checkpoint report:
+
+```
+=== Stage 05 Checkpoint ===
+Completed this batch : TASK-NNN, TASK-NNN, TASK-NNN
+Remaining            : X tasks
+Test status          : X passing, 0 failing
+Blockers / gaps      : none | [describe if any]
+==========================
+```
+
+Wait for the engineer to acknowledge ("continue" / "ok" / any reply) before
+proceeding to the next task. If the engineer requests a pause or review, stop
+and address their feedback before resuming.
+
+**Per-task summary** (always, regardless of checkpoint cadence):
 - What was implemented
-- Which acceptance criteria are met (checklist from task definition)
+- Which acceptance criteria are met
 - Any implementation decisions that deviate from or extend the design (and why)
-- Any issues discovered (design gaps, edge cases not in the task) — do not fix silently
-- Files created/modified
-
-Update `state.yaml` to record the task as complete.
-
-The engineer may review at any cadence they choose — after every task, after a group
-of tasks, or at stage end. Continue to the next task unless the engineer explicitly
-asks to pause.
+- Any issues discovered — do not fix silently; surface with `[DESIGN GAP]` or `[BLOCKER]`
+- Files created or modified
 
 ---
 
@@ -170,6 +201,35 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 - [ ] All tasks in plan.md are complete
 - [ ] Engineer approves the full implementation stage
 - [ ] `state.yaml` updated: `current_stage: 6`, `stage_05: approved`
+
+---
+
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `plan.md` | Stage 04 | APPROVED | Task definitions and implementation order |
+| `design.md` | Stage 03 | APPROVED | Architecture and interfaces to implement against |
+| `api-contracts.md` | Stage 03 | APPROVED (if exists) | API contracts to implement |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| Source code | `src/` (or project path) | Stages 06, 07, 08 |
+| `TASK-NNN-notes.md` (per task) | `artifacts/05-implementation/TASK-NNN-notes.md` | Stages 07, 08 |
+
+### Pre-Stage Verification
+
+Before beginning Stage 05, confirm:
+1. `artifacts/04-planning/plan.md` exists and has `status: APPROVED`
+2. `artifacts/03-design/design.md` exists and has `status: APPROVED`
+3. `state.yaml` shows `stage_04: approved`
+4. `pipeline.checkpoint_interval_tasks` read from `.agentic/config.yaml` (default: 3)
+
+If any check fails, stop and surface to engineer before proceeding.
 
 ---
 

@@ -146,6 +146,35 @@ Present a summary to the engineer:
 
 ---
 
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `SRS.md` | Stage 02 | APPROVED | Requirements to story-map and task |
+| `design.md` | Stage 03 | APPROVED | Components and entities to task |
+| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Endpoints to task |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `user-stories.md` | `artifacts/04-planning/user-stories.md` | Stages 05, 07 |
+| `plan.md` | `artifacts/04-planning/plan.md` | Stages 05, 06, 07, 08 |
+
+### Pre-Stage Verification
+
+Before beginning Stage 04, confirm:
+1. `artifacts/03-design/design.md` exists and has `status: APPROVED`
+2. `artifacts/02-requirements/SRS.md` exists and has `status: APPROVED`
+3. `state.yaml` shows `stage_03: approved`
+4. If `api-contracts.md` was produced in Stage 03, confirm it also has `status: APPROVED`
+
+If any check fails, stop and surface to engineer before proceeding.
+
+---
+
 ## Common Failure Modes
 
 - Writing user stories that describe implementation steps rather than user outcomes

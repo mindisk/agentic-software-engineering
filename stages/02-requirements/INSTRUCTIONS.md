@@ -52,9 +52,29 @@ Produce `SRS.md` using the template at `stages/02-requirements/templates/SRS.md`
 
 **Functional Requirements (FR-NNN):**
 - One requirement per ID
-- State what the system SHALL do, not how
-- Include acceptance criteria for each
+- State what the system SHALL do, not how — use RFC 2119 keywords (`SHALL`/`MUST` for mandatory, `SHOULD` for recommended, `MAY` for optional)
+- Include at least one Given/When/Then scenario per requirement — scenarios are the acceptance criteria
 - Group by feature area or user flow
+
+**Requirement format (OpenSpec-compatible):**
+```markdown
+### FR-001: User authentication
+
+Users SHALL be authenticated before accessing any protected resource.
+
+#### Scenario: Valid credentials
+Given a registered user provides a valid email and password
+When they submit the login form
+Then they receive a session token and are redirected to the dashboard
+
+#### Scenario: Invalid credentials
+Given a user provides an incorrect password
+When they submit the login form
+Then they receive a 401 response with no session created
+```
+
+Every requirement must have: RFC 2119 language in the statement + at least one scenario.
+Error paths are explicit scenarios, not implied by the happy-path scenario.
 
 **Non-Functional Requirements (NFR-NNN):**
 - Performance: response times, throughput
@@ -82,9 +102,10 @@ For each primary use case:
 Before presenting:
 - Every FR-NNN traces back to something in the project brief
 - No two requirements contradict each other
-- No requirement is untestable
+- Every FR-NNN uses RFC 2119 language (`SHALL`/`MUST`/`SHOULD`/`MAY`) in its statement
+- Every FR-NNN has at least one Given/When/Then scenario; error paths have their own explicit scenarios
 - NFRs have measurable targets (no "must be fast")
-- Edge cases are covered in use cases or flagged as `[OPEN]`
+- Edge cases are covered as scenarios within the relevant FR-NNN or flagged as `[OPEN]`
 
 Present a summary to the engineer:
 - Requirement count (X functional, Y non-functional, Z use cases)
@@ -109,12 +130,40 @@ Present a summary to the engineer:
 ## Done Criteria
 
 - [ ] `SRS.md` written with all FR-NNN and NFR-NNN defined
+- [ ] Every FR-NNN uses RFC 2119 language (`SHALL`/`MUST`/`SHOULD`/`MAY`)
+- [ ] Every FR-NNN has at least one Given/When/Then scenario; error paths are explicit scenarios
 - [ ] `use-cases.md` written with primary and alternative flows
 - [ ] All requirements traceable to `project-brief.md`
 - [ ] No untestable requirements
 - [ ] Stage 02 review checklist presented and all items addressed
 - [ ] Engineer explicitly approves (artifact status updated to `APPROVED`)
 - [ ] `state.yaml` updated: `current_stage: 3`, `stage_02: approved`
+
+---
+
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `project-brief.md` | Stage 01 | APPROVED | Source of all requirements |
+| `state.yaml` | Current feature | Any | QA log, error log, stage status |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `SRS.md` | `artifacts/02-requirements/SRS.md` | Stages 03, 04, 06, 07, 08 |
+| `use-cases.md` | `artifacts/02-requirements/use-cases.md` | Stages 03, 06, 07, 08 |
+
+### Pre-Stage Verification
+
+Before beginning Stage 02, confirm:
+1. `artifacts/01-intake/project-brief.md` exists and has `status: APPROVED`
+2. `state.yaml` shows `stage_01: approved`
+
+If either check fails, stop and surface to engineer before proceeding.
 
 ---
 

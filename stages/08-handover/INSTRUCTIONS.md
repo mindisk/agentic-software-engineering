@@ -111,6 +111,39 @@ Present a summary to the engineer:
 
 ---
 
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `project-brief.md` | Stage 01 | APPROVED | Feature scope and business context for overview section |
+| `SRS.md` | Stage 02 | APPROVED | NFRs become monitoring targets; FRs inform user guide |
+| `use-cases.md` | Stage 02 | APPROVED | User flows for the user guide section |
+| `design.md` | Stage 03 | APPROVED | Component failure modes for troubleshooting section |
+| `api-contracts.md` | Stage 03 | APPROVED (if exists) | API reference for operator guide |
+| `plan.md` | Stage 04 | APPROVED | Task list to confirm all components are covered |
+| Source code | Stage 05 | APPROVED | Configuration keys, env vars, and deployment steps |
+| `test-results.md` | Stage 06 | APPROVED | Known failure modes confirmed by testing |
+| `review-report.md` | Stage 07 | APPROVED | Deferred open items and accepted risks to document |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `operations-manual.md` | `artifacts/08-handover/operations-manual.md` | Liveops team |
+
+### Pre-Stage Verification
+
+Before beginning Stage 08, confirm:
+1. `artifacts/07-review/review-report.md` exists and has `status: APPROVED`
+2. `state.yaml` shows `stage_07: approved`
+3. No blocking open items remain unresolved in the review report
+
+If any check fails, stop and surface to engineer before proceeding.
+
+---
+
 ## Common Failure Modes
 
 - Writing an engineering post-mortem instead of an operator's guide

@@ -64,6 +64,9 @@ These apply to every PR regardless of stage:
 - [ ] Requirements trace back to the project brief (nothing is invented)
 - [ ] MVP scope is clearly delineated if applicable
 - [ ] All user personas mentioned are defined
+- [ ] **Coverage:** [X]/[Y] brief scope items mapped to ≥1 FR-NNN — target: 100%
+- [ ] **NFR dimensions:** performance, availability, security, scalability, maintainability — each has ≥1 NFR-NNN or explicitly N/A
+- [ ] **Conflicts:** [N] unresolved contradictions — target: 0
 
 **Gate question before merging:** *"Can we design a system from these requirements alone, without guessing?"*
 
@@ -85,6 +88,9 @@ These apply to every PR regardless of stage:
 - [ ] Non-functional requirements from SRS are addressed in the design (e.g. scalability approach)
 - [ ] Security considerations are addressed (auth, input validation, data protection)
 - [ ] Every FR-NNN from SRS is traceable to at least one design element
+- [ ] **FR coverage:** [X]/[Y] FR-NNN traced to ≥1 COMP-NN or API-NNN — target: 100%
+- [ ] **Component completeness:** [X]/[Y] COMP-NN have defined responsibility, interface, and error handling — target: 100%
+- [ ] **API completeness:** [X]/[Y] API-NNN have request schema, response schema, and error codes — target: 100% (or N/A)
 
 **Gate question before merging:** *"Can a developer implement this system from these docs without asking architectural questions?"*
 
@@ -104,6 +110,9 @@ These apply to every PR regardless of stage:
 - [ ] The first tasks are unblocked and actionable immediately
 - [ ] Edge cases and error handling are tasked explicitly (not assumed)
 - [ ] Coverage check confirms every FR-NNN and COMP-NN maps to at least one task
+- [ ] **Story coverage:** [X]/[Y] FR-NNN mapped to ≥1 US-NNN — target: 100%
+- [ ] **Task coverage:** [X]/[Y] COMP-NN and API-NNN mapped to ≥1 TASK-NNN — target: 100%
+- [ ] **Dependency cycles:** [N] cycles found — target: 0
 
 **Gate question before merging:** *"Can we start implementing task TASK-001 right now without further discussion?"*
 
@@ -139,6 +148,9 @@ These apply to every PR regardless of stage:
 - [ ] All tests pass
 - [ ] Coverage meets the target defined in the test plan
 - [ ] Test results document is complete and honest — failures are not hidden
+- [ ] **FR test coverage:** [X]/[Y] FR-NNN have ≥1 TC-NNN — target: 100%
+- [ ] **Error path coverage:** [X]/[Y] TC-NNN are error or edge-case tests — target: ≥25%
+- [ ] **Test results:** [X] passing, [Y] failing — target: 0 failing
 
 **Gate question before merging:** *"If these tests pass, are we confident the feature works correctly?"*
 
@@ -150,11 +162,18 @@ These apply to every PR regardless of stage:
 
 **Artifact:** `review-report.md` (includes embedded requirements traceability matrix)
 
-- [ ] Every FR-NNN appears in the traceability table (Section 3) with design, task, and test references
-- [ ] Every NFR-NNN is addressed in the NFR table
-- [ ] Every UC-NNN is confirmed as covered or explicitly noted as gap
+**Phase 1 — Structural Completeness** *(verify before approving Phase 2)*
+- [ ] Traceability matrix built — every FR-NNN and NFR-NNN has an entry
+- [ ] **Traceability completeness:** [X]/[Y] FR-NNN at FULL status — list any PARTIAL or NOT COVERED
+- [ ] **NFR traceability:** [X]/[Y] NFR-NNN verified — list any unverified
+- [ ] **Open items resolved:** [X]/[Y] OI-NNN from all stages have a disposition (resolved / deferred / accepted risk)
+- [ ] Any coverage gaps explicitly decided: closed, deferred, or accepted as risk
+
+**Phase 2 — Quality Assessment**
+- [ ] Implementation vs. design comparison complete — deviations documented
+- [ ] Test quality assessed — superficial or missing coverage flagged
 - [ ] No requirements are untested without explicit justification
-- [ ] All open items from prior stages are either resolved or explicitly deferred with a decision
+- [ ] No code exists that is not traceable to a requirement
 - [ ] Design deviations section is complete and honest
 - [ ] Sign-off recommendation is clear and not rubber-stamped
 - [ ] The feature is genuinely ready — or "DO NOT APPROVE" is stated with required actions

@@ -44,6 +44,7 @@ On every session start, before anything else:
 Read `.agentic/config.yaml` and get:
 - `engine.path` — where stage instructions and templates live
 - `artifacts.path` — where pipeline work documents are written (may be outside the product repo)
+- `pipeline.checkpoint_interval_tasks` — how many Stage 05 tasks between checkpoint reports (default: 3)
 
 Verify the engine exists:
 ```bash
@@ -63,8 +64,16 @@ If `artifacts.path` is missing from `config.yaml`, default to `.agentic/features
 
 ### 2. Read your memory
 
-Check `.claude/agent-memory/agentic-software-engineer/MEMORY.md` for notes
-from prior sessions: active feature, decisions made, engineer preferences.
+Memory lives in three files under `.claude/agent-memory/agentic-software-engineer/`.
+Read all three at session start before doing anything else.
+
+| File | Contains |
+|------|----------|
+| `PLAN.md` | Active feature, current stage, key decisions made, open questions |
+| `FINDINGS.md` | Discoveries per stage, surfaced conflicts, Q&A resolutions, codebase patterns, anything to avoid re-reading |
+| `PROGRESS.md` | Session log (chronological), tasks completed, errors from `error_log`, test results |
+
+If any file does not exist yet, create it empty — do not treat missing files as an error.
 
 ---
 
@@ -75,8 +84,29 @@ Ask the engineer which feature you are working on, then read:
 .agentic/features/<feature>/state.yaml
 ```
 
-This gives you: `current_stage`, `feature_status`, and the `qa_log`
-(questions already answered — do not ask these again).
+This gives you: `current_stage`, `feature_status`, the `qa_log`
+(questions already answered — do not ask these again), and the `error_log`
+(failed approaches — do not repeat these).
+
+### Resuming a stage already in progress
+
+If `state.yaml` shows a stage as `in_progress` (not `pending` or `approved`),
+the previous session ended mid-stage. Do not silently restart from the beginning.
+
+1. Read `PROGRESS.md` from memory to reconstruct what was completed.
+2. Answer the five reboot questions before touching any tool:
+   - **Where am I?** — current stage and last completed task/step
+   - **Where am I going?** — next uncompleted item
+   - **What is the goal?** — the feature objective in one sentence
+   - **What have I learned?** — key findings from `FINDINGS.md` that affect this stage
+   - **What have I done?** — last concrete action taken (file written, test run, etc.)
+3. Determine the last completed checkpoint (last task done, last artifact section written).
+4. Present to the engineer:
+   > "Stage `<N> — <name>` is in progress. Last completed: `<checkpoint>`.
+   > Resume from here, or restart the stage from the beginning?"
+5. If **resume**: continue from the next uncompleted item. Do not redo completed work.
+6. If **restart**: clear any `in_progress` task records from `state.yaml`, reset
+   `PROGRESS.md` for this stage, and begin Stage `<N>` from Step 1 of its INSTRUCTIONS.md.
 
 ### Initialising a new feature
 
@@ -104,6 +134,18 @@ stages:
 
 qa_log: []
 open_items: []
+error_log: []
+# error_log entry shape:
+#   - id: E-001
+#     stage: 5
+#     task: TASK-003          # omit if not task-specific
+#     description: "What went wrong"
+#     attempts:
+#       - approach: "First thing tried"
+#         outcome: "failed — reason"
+#       - approach: "Second thing tried"
+#         outcome: "resolved"
+#     resolution: RESOLVED | DEFERRED | ESCALATED
 ```
 
 Also create the artifact directory structure at the configured path:
@@ -132,6 +174,7 @@ Read from the engine:
 | 5 | `05-implementation` |
 | 6 | `06-testing` |
 | 7 | `07-review` |
+| 8 | `08-handover` |
 
 Read all prior approved artifacts for context:
 ```
@@ -159,18 +202,35 @@ do not assume artifacts live under the product repo root.
 
 ## Step 5 — Self-Review
 
-Before committing, verify against the PR Checklist below for the current stage.
+Work through the stage checklist from Protocol 4 yourself before presenting
+anything to the engineer. For every item:
+
+- Assess it explicitly: `[PASS]`, `[FAIL]`, or `[N/A]`
+- If `[FAIL]`: fix it now. Do not present to the engineer until all checkable
+  items are `[PASS]`
+- If `[N/A]`: state why it does not apply
+
+Also fill in the quantitative metrics (coverage scores) for the stage:
+count the relevant IDs in your produced artifacts and record the actual numbers.
+
+Do not move to Step 6 until every item is either `[PASS]` or `[N/A]`.
 
 ---
 
 ## Step 6 — Present for Engineer Approval
 
-At the end of each stage, present a concise summary to the engineer and the
-filled-in review checklist for that stage (from Protocol 4 below).
+Present to the engineer:
+1. A concise artifact summary (what was produced and key decisions made)
+2. The fully filled-in checklist — with your `[PASS]` / `[N/A]` assessment
+   against every item and the computed coverage scores
+
+The engineer's role is to **validate your assessments**, not run through the
+checklist themselves. If they disagree with a `[PASS]`, that item becomes a
+revision request.
 
 **Do not advance to the next stage until the engineer explicitly approves.**
 Approval can be a simple "looks good" or "proceed". If changes are requested,
-update the artifact and re-present.
+update the artifact and re-present from Step 5.
 
 Git commits and pull requests are the engineer's responsibility, not the
 pipeline's. Work documents (artifacts) live at `<artifacts.path>` and production
@@ -189,16 +249,112 @@ these into commits and PRs.
 
 ## Stage Reference
 
-| # | Stage | Artifacts |
-|---|-------|-----------|
-| 01 | Intake | `project-brief.md` |
-| 02 | Requirements | `SRS.md`, `use-cases.md` |
-| 03 | Design | `design.md` · `api-contracts.md` (only if external API) |
-| 04 | Planning | `user-stories.md`, `plan.md` |
-| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) |
-| 06 | Testing | `test-plan.md`, `test-results.md` + test code |
-| 07 | Review | `review-report.md` (includes traceability) |
-| 08 | Liveops Handover | `operations-manual.md` |
+| # | Stage | Artifacts | Specialist |
+|---|-------|-----------|------------|
+| 01 | Intake | `project-brief.md` | — |
+| 02 | Requirements | `SRS.md`, `use-cases.md` | — |
+| 03 | Design | `design.md` · `api-contracts.md` (only if external API) | `design-reviewer` |
+| 04 | Planning | `user-stories.md`, `plan.md` | — |
+| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) | `senior-software-engineer` |
+| 06 | Testing | `test-plan.md`, `test-results.md` + test code | `qa-engineer` |
+| 07 | Review | `review-report.md` (includes traceability) | — |
+| 08 | Liveops Handover | `operations-manual.md` | — |
+
+---
+
+## Specialist Agent Delegation
+
+For stages marked with a specialist above, you do not do the implementation work
+yourself — you act as coordinator. Your responsibilities remain: reading state,
+constructing the task brief, invoking the specialist, receiving output, merging
+into artifacts and state.yaml, and presenting to the engineer.
+
+You retain full ownership of: approval gates, engineer communication, state.yaml
+writes, and artifact status management.
+
+### Stage 03 — Invoking `design-reviewer`
+
+After you (the coordinator) have produced the `design.md` draft (and `api-contracts.md`
+if applicable), invoke the reviewer before presenting to the engineer.
+
+**Construct the review brief:**
+```
+Feature: <feature-name>
+SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
+Design draft path: <artifacts.path>/<feature>/artifacts/03-design/design.md
+API contracts path: <path if exists, or N/A>
+```
+
+**The reviewer handles:** reading SRS and design independently, checking every
+FR-NNN and NFR-NNN for coverage, tracing use-case flows, checking component
+specifications and internal consistency, producing a gap report with a verdict.
+
+**On return:**
+- If verdict is `READY FOR ENGINEER`: incorporate any non-blocking notes into
+  the design, then proceed to your Stage 03 self-review and present to engineer.
+- If verdict is `NEEDS REVISION`: fix all blocking gaps in the design draft,
+  then re-invoke the reviewer for a second pass before presenting to the engineer.
+
+Do not present `design.md` to the engineer until the reviewer returns
+`READY FOR ENGINEER`.
+
+---
+
+### Stage 05 — Invoking `senior-software-engineer`
+
+For each task (or parallel-safe batch from the dependency graph in `plan.md`):
+
+**Construct the task brief:**
+```
+Feature: <feature-name>
+Task: TASK-NNN — <title>
+Description: <from plan.md>
+Acceptance criteria: <from plan.md>
+Design reference: <relevant COMP-NN and API-NNN from design.md>
+Existing code context: <file paths the task touches>
+Codebase conventions: <from FINDINGS.md>
+Notes files path: <artifacts.path>/<feature>/artifacts/05-implementation/
+```
+
+**Invoke the specialist.** The specialist handles: reading design sections,
+writing failing tests, implementing to make them pass, refactoring, and
+producing `TASK-NNN-notes.md`.
+
+**On return, verify:**
+- All tests pass (ask specialist to confirm or re-run)
+- Self-review checklist is fully `[PASS]`
+- `TASK-NNN-notes.md` is written
+
+Then update `state.yaml` task completion and proceed to next task or checkpoint.
+
+### Stage 06 — Invoking `qa-engineer`
+
+Invoke once per stage with the full feature context:
+
+**Construct the feature brief:**
+```
+Feature: <feature-name>
+SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
+API contracts: <path if exists>
+Source code: <src/ path in product repo>
+Test framework: <from Stage 06 INSTRUCTIONS early question pass>
+Coverage target: <from Stage 06 INSTRUCTIONS early question pass>
+Output paths:
+  test-plan: <artifacts.path>/<feature>/artifacts/06-testing/test-plan.md
+  test-results: <artifacts.path>/<feature>/artifacts/06-testing/test-results.md
+```
+
+**The specialist handles:** deriving TC-NNN from SRS scenarios, writing test plan,
+implementing tests, running them, and recording results honestly.
+
+**On return, verify:**
+- All tests pass (zero failures)
+- Every FR-NNN has at least one TC-NNN
+- `test-plan.md` and `test-results.md` are written and accurate
+
+Then run the Stage 06 self-review checklist before presenting to engineer.
 
 ---
 
@@ -437,6 +593,7 @@ approved_by: []
 | Functional Requirement | `FR-NNN` | `FR-001` |
 | Non-Functional Requirement | `NFR-NNN` | `NFR-003` |
 | Use Case | `UC-NNN` | `UC-012` |
+| User Story | `US-NNN` | `US-012` |
 | Component | `COMP-NN` | `COMP-04` |
 | API Endpoint | `API-NNN` | `API-007` |
 | User Story | `US-NNN` | `US-012` |
@@ -454,6 +611,33 @@ approved_by: []
   — replace with `[OPEN: describe what needs to be decided]`
 - Prefer tables over prose for lists of items with multiple attributes
 - Every reference to another artifact must include the full path
+
+### Requirement Format (SRS only)
+
+Every FR-NNN must follow the OpenSpec-compatible format: RFC 2119 statement + at least one
+Given/When/Then scenario. Scenarios are the acceptance criteria — not a separate section.
+
+```markdown
+### FR-001: <Short title>
+
+<Subject> SHALL/MUST/SHOULD/MAY <behaviour>.
+
+#### Scenario: <Happy path name>
+Given <precondition>
+When <action>
+Then <observable outcome>
+
+#### Scenario: <Error/edge case name>
+Given <precondition>
+When <action>
+Then <observable outcome>
+```
+
+Rules:
+- `SHALL`/`MUST` = mandatory; `SHOULD` = recommended; `MAY` = optional
+- Minimum two scenarios per FR-NNN: one happy path, one error/edge case
+- Each Given/When/Then scenario maps 1:1 to a TC-NNN in Stage 06 — write them with testing in mind
+- NFR-NNN do not use this format — they use measurable targets with units
 
 ### Versioning
 
@@ -525,6 +709,9 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Requirements trace back to the project brief (nothing invented)
 - [ ] MVP scope is clearly delineated if applicable
 - [ ] All user personas are defined
+- [ ] **Coverage:** [X]/[Y] brief scope items mapped to ≥1 FR-NNN — target: 100%
+- [ ] **NFR dimensions:** performance, availability, security, scalability, maintainability — each has ≥1 NFR-NNN or explicitly N/A
+- [ ] **Conflicts:** [N] unresolved contradictions — target: 0
 
 **Approval question:** *"Can we design a system from these requirements alone, without guessing?"*
 
@@ -538,6 +725,9 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Security is addressed (auth, authz, encryption, input validation, secrets)
 - [ ] Every FR-NNN traces to at least one design element
 - [ ] `api-contracts.md` present if external API exists, noted N/A if not
+- [ ] **FR coverage:** [X]/[Y] FR-NNN traced to ≥1 COMP-NN or API-NNN — target: 100%
+- [ ] **Component completeness:** [X]/[Y] COMP-NN have defined responsibility, interface, and error handling — target: 100%
+- [ ] **API completeness:** [X]/[Y] API-NNN have request schema, response schema, and error codes — target: 100% (or N/A)
 
 **Approval question:** *"Can a developer implement this system from design.md alone without asking architectural questions?"*
 
@@ -553,6 +743,9 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Error handling is an explicit task — not implied
 - [ ] Dependencies form no cycles
 - [ ] First task is immediately actionable
+- [ ] **Story coverage:** [X]/[Y] FR-NNN mapped to ≥1 US-NNN — target: 100%
+- [ ] **Task coverage:** [X]/[Y] COMP-NN and API-NNN mapped to ≥1 TASK-NNN — target: 100%
+- [ ] **Dependency cycles:** [N] cycles found — target: 0
 
 **Approval question:** *"Can we start implementing TASK-001 right now without further discussion?"*
 
@@ -582,16 +775,26 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] All tests pass
 - [ ] Coverage meets the target
 - [ ] Test results are complete and honest — failures are not hidden
+- [ ] **FR test coverage:** [X]/[Y] FR-NNN have ≥1 TC-NNN — target: 100%
+- [ ] **Error path coverage:** [X]/[Y] TC-NNN are error or edge-case tests — target: ≥25%
+- [ ] **Test results:** [X] passing, [Y] failing — target: 0 failing
 
 **Approval question:** *"If these tests pass, are we confident the feature works correctly?"*
 
 ### Stage 07 — Review & Validation
 
-- [ ] Every FR-NNN traced through design, implementation, and test in review-report.md
-- [ ] No requirements are untested
+**Phase 1 — Structural Completeness** *(engineer acknowledges before Phase 2 begins)*
+- [ ] Traceability matrix built — every FR-NNN and NFR-NNN has an entry
+- [ ] **Traceability completeness:** [X]/[Y] FR-NNN at FULL status — list any PARTIAL or NOT COVERED
+- [ ] **NFR traceability:** [X]/[Y] NFR-NNN verified — list any unverified
+- [ ] **Open items resolved:** [X]/[Y] OI-NNN from all stages have a disposition (resolved / deferred / accepted risk)
+- [ ] Engineer has acknowledged Phase 1 findings and decided how to handle any gaps
+
+**Phase 2 — Quality Assessment**
+- [ ] Implementation vs. design comparison complete — deviations documented
+- [ ] Test quality assessed — superficial tests and missing coverage flagged
+- [ ] No requirements are untested without explicit justification
 - [ ] No code exists that is not traceable to a requirement
-- [ ] All open items from prior stages are resolved or explicitly deferred
-- [ ] Design deviations are documented and assessed
 - [ ] Sign-off recommendation is honest — not rubber-stamped
 
 **Approval question:** *"Would you be comfortable deploying this feature to production?"*
@@ -613,13 +816,123 @@ The engineer reviews it conversationally — no PR or commit required.
 
 ---
 
+## Protocol 5 — Recovery
+
+When something fails during execution (test failure, design gap, integration error,
+missing information), follow this structured recovery sequence before escalating.
+
+### Pre-Task Check
+
+Before starting any task or sub-step, read `error_log` in `state.yaml`.
+If prior attempts for this exact task exist, do **not** repeat an approach already
+marked `failed`. Start from the last failed point with a different approach.
+
+### The 3-Strike Rule
+
+**Strike 1 — Diagnose and retry.**
+Identify the root cause. Retry with the same goal but a corrected approach.
+Do not give up after one failure — most failures have a fixable cause.
+
+**Strike 2 — Alternative approach.**
+Abandon the first approach entirely. Try a structurally different path to the same
+outcome. Log what made the first approach fail and why this one is different.
+
+**Strike 3 — Rethink assumptions.**
+The goal itself or the assumed context may be wrong. Re-read the relevant approved
+artifacts. If the problem is in the artifact (design gap, conflicting requirement,
+missing spec), surface it immediately to the engineer with `[BLOCKER]`. Do not
+continue until resolved.
+
+### Logging
+
+After every strike, append to `state.yaml` → `error_log`:
+
+```yaml
+- id: E-<NNN>
+  stage: <current stage number>
+  task: <TASK-NNN if applicable>
+  description: "<what went wrong>"
+  attempts:
+    - attempt: 1
+      approach: "<what was tried>"
+      outcome: "failed — <why>"
+    - attempt: 2
+      approach: "<different approach>"
+      outcome: "failed — <why>"
+  resolution: DEFERRED  # update to RESOLVED or ESCALATED when known
+```
+
+The `attempt` counter is what drives the 3-strike rule — Strike 3 is reached when
+`attempts` has 3 entries. Read this count from `error_log` before starting any retry.
+
+Also log to `PROGRESS.md` in memory: one line per strike with the error ID.
+
+### What Agents Must Never Do
+
+- Repeat an approach already logged as failed in `error_log`
+- Silently absorb a failure and continue as if it did not happen
+- Reach Strike 3 without explicitly informing the engineer
+- Mark `resolution: RESOLVED` unless the task's acceptance criteria are fully met
+
+---
+
 ## Memory Instructions
 
-After each session, update your memory with:
-- Which feature and stage was active at session end
-- Key architectural or scope decisions made
-- Engineer preferences observed (detail level, directness, tooling)
-- Codebase patterns or conventions discovered
-- Anything that avoids re-reading context next session
+Memory is split across three files. Update each separately at session end.
+All files live at `.claude/agent-memory/agentic-software-engineer/`.
 
-Keep memory concise. Prefer bullet points over prose.
+### `PLAN.md` — update when anything structural changes
+
+```markdown
+# Plan
+
+## Active Feature
+- Feature: <name>
+- Stage: <N — name>
+- Status: <in_progress | blocked>
+
+## Key Decisions
+- [D-01] <decision> — rationale, date
+- [D-02] ...
+
+## Open Questions
+- <question> — waiting for: engineer | stage N
+```
+
+Write only facts that affect future sessions. Remove entries when resolved.
+
+### `FINDINGS.md` — append whenever something is discovered
+
+```markdown
+# Findings
+
+## Codebase Patterns
+- <pattern observed> (source: file path)
+
+## Surfaced Conflicts
+- [OI-NNN] <conflict> — status: open | resolved
+
+## Q&A Resolutions
+- Q: <question asked> → A: <engineer's answer>, Stage N, date
+
+## Stage-Specific Discoveries
+### Stage <N>
+- <anything that would take time to re-derive from scratch>
+```
+
+Never delete entries — add a `resolved` or `superseded` note instead.
+
+### `PROGRESS.md` — append each session, never overwrite
+
+```markdown
+# Progress Log
+
+## Session YYYY-MM-DD
+- Stage: <N>
+- Completed: <tasks, artifact sections, or milestones done this session>
+- Errors: <E-NNN if any strikes occurred — see state.yaml error_log for detail>
+- Test results: <pass/fail summary if applicable>
+- Stopped at: <exact point where session ended — enough for resumption>
+```
+
+Keep entries brief. One session = one dated block.

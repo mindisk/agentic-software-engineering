@@ -47,38 +47,51 @@ basis for system design, implementation, and test planning.
 
 ### 2.1 [Feature Area Name]
 
-#### FR-001 — [Requirement title]
+### FR-001: [Requirement title]
 
-**Description:** The system SHALL [clearly stated behaviour].
-
-**Acceptance Criteria:**
-- [ ] [Verifiable criterion]
-- [ ] [Verifiable criterion]
+The system SHALL [clearly stated behaviour].
 
 **Priority:** Must-have / Should-have / Nice-to-have
 **User Story:** [US-NNN]
 **Source:** [Reference to project-brief.md section]
+
+#### Scenario: [Happy path name]
+Given [precondition]
+When [action]
+Then [observable outcome]
+
+#### Scenario: [Error/edge case name]
+Given [precondition]
+When [action]
+Then [observable outcome]
 
 ---
 
-#### FR-002 — [Requirement title]
+### FR-002: [Requirement title]
 
-**Description:** The system SHALL [clearly stated behaviour].
-
-**Acceptance Criteria:**
-- [ ] [Verifiable criterion]
+The system SHALL [clearly stated behaviour].
 
 **Priority:** Must-have / Should-have / Nice-to-have
 **User Story:** [US-NNN]
 **Source:** [Reference to project-brief.md section]
+
+#### Scenario: [Happy path name]
+Given [precondition]
+When [action]
+Then [observable outcome]
+
+#### Scenario: [Error/edge case name]
+Given [precondition]
+When [action]
+Then [observable outcome]
 
 ---
 
 ### 2.2 [Feature Area Name]
 
-#### FR-003 — [Requirement title]
+### FR-003: [Requirement title]
 
-[Continue pattern...]
+[Continue pattern — every FR-NNN needs RFC 2119 language + at least two scenarios]
 
 ---
 

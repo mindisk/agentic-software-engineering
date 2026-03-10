@@ -39,73 +39,156 @@ traceability matrix in a single document.
 
 ## Process
 
-### Step 1 — Read everything
+This stage runs in two sequential phases. Phase 2 begins only after the engineer
+explicitly acknowledges Phase 1 findings. The two phases address different questions:
+- **Phase 1** — *Is everything here?* (completeness)
+- **Phase 2** — *Is everything good?* (quality)
 
-Read all artifacts from all prior stages. Build a complete picture of what was
-planned, what was built, and how well it was tested before writing anything.
+Separating them prevents quality praise from masking structural gaps, and structural
+completeness from masking quality problems.
 
-### Step 2 — Build traceability
+---
+
+### Phase 1 — Structural Completeness
+
+#### Step 1 — Read everything
+
+Read all artifacts from all prior stages before writing anything. Build a full
+picture of what was planned, what was built, and how it was tested.
+
+#### Step 2 — Build the traceability matrix
 
 For every FR-NNN and NFR-NNN in the SRS, trace it through:
-- Which design element (component, API, entity) addresses it
-- Which task(s) implemented it
-- Which test case(s) verify it
-- Status: FULL / PARTIAL / NOT COVERED
+- Which design element (COMP-NN, API-NNN, entity) addresses it
+- Which TASK-NNN implemented it
+- Which TC-NNN verifies it
+- Status: `FULL` / `PARTIAL` / `NOT COVERED`
 
-Any requirement not fully traced is a gap. Document it explicitly.
+Any requirement not fully traced is a gap. Document it explicitly — do not skip
+or minimise gaps.
 
-### Step 3 — Review implementation against design
+Compute coverage score: [X]/[Y] FR-NNN at `FULL` status.
 
-Compare implemented code (from implementation notes) against
-the approved design. Flag:
-- Deviations that were not reviewed
+#### Step 3 — Resolve open items
+
+Collect every OI-NNN from every artifact across all stages.
+For each, determine: `RESOLVED` (how?) / `DEFERRED` (to when?) / `STILL OPEN` (blocking sign-off?).
+
+#### Step 4 — Present Phase 1 to engineer
+
+Present to the engineer:
+- Traceability coverage score: [X]/[Y] FR-NNN fully traced
+- List of any PARTIAL or NOT COVERED requirements
+- Open items disposition: [X] resolved, [Y] deferred, [Z] still open
+- Phase 1 sub-checklist (see Protocol 4 Stage 07 below)
+
+**Wait for explicit engineer acknowledgement before beginning Phase 2.**
+
+If coverage is below 100% or blocking open items remain, the engineer decides:
+- Return to the relevant stage to close the gap, or
+- Accept the gap as a documented risk and proceed
+
+Do not begin Phase 2 until this decision is made and recorded.
+
+---
+
+### Phase 2 — Quality Assessment
+
+#### Step 5 — Review implementation against design
+
+Compare implementation notes and code against the approved design.md. Flag:
+- Deviations not reviewed during Stage 05
 - Architectural decisions made during implementation without approval
-- Missing error handling
-- API responses that differ from design.md
+- Missing error handling specified in the design
+- API responses that differ from api-contracts.md
 
-### Step 4 — Resolve open items
+#### Step 6 — Assess test quality
 
-Collect all OI-NNN items from all artifacts.
-For each: resolved (how?), deferred (to when?), or still open (blocking sign-off?).
+Review test-plan.md and test-results.md. Flag:
+- Tests that cover the happy path only
+- Acceptance criteria with no corresponding test
+- Tests that passed trivially (testing nothing meaningful)
+- Any failures hidden or glossed over in results
 
-### Step 5 — Write review-report.md
+#### Step 7 — Write review-report.md
 
 Use the template at `stages/07-review/templates/review-report.md`.
 
 Complete all eight sections:
 1. Feature summary
 2. Pipeline summary
-3. Requirements traceability (FR + NFR + use cases)
-4. Test results summary
+3. Requirements traceability matrix (FR + NFR + use cases) — built in Phase 1
+4. Test results summary — from Phase 2 quality assessment
 5. Design deviations
-6. Open items status
+6. Open items status — from Phase 1
 7. Remaining risks
-8. Sign-off recommendation
+8. Sign-off recommendation — honest, not rubber-stamped
 
-### Step 6 — Present review report for engineer sign-off
+#### Step 8 — Present Phase 2 and full review report for engineer sign-off
 
-Present a summary to the engineer:
-- Requirements coverage (X/Y fully covered, any gaps)
-- Test results summary
-- Design deviations (if any)
-- Open items status
+Present to the engineer:
+- Design deviation summary (if any)
+- Test quality assessment
+- Remaining risks
 - Sign-off recommendation with honest rationale
-- Filled-in Stage 07 review checklist (from Protocol 4)
+- Full Stage 07 checklist (both phases, all items filled in)
 
-The engineer's explicit approval of the review report is the formal sign-off on the feature.
+The engineer's explicit approval of the full review report is the formal sign-off
+on the feature.
 
 ---
 
 ## Done Criteria
 
+**Phase 1 — Structural Completeness**
+- [ ] Traceability matrix built — every FR-NNN and NFR-NNN has an entry
+- [ ] Coverage score computed and presented ([X]/[Y] at FULL status)
+- [ ] Every OI-NNN from all prior stages has a disposition
+- [ ] Engineer has explicitly acknowledged Phase 1 findings and any coverage gaps
+
+**Phase 2 — Quality Assessment**
+- [ ] Implementation vs. design comparison complete — deviations documented
+- [ ] Test quality assessed — superficial or missing coverage flagged
 - [ ] `review-report.md` written with all eight sections
-- [ ] Traceability covers every FR-NNN and NFR-NNN
-- [ ] All gaps documented — none hidden
-- [ ] All open items accounted for
+- [ ] No gaps hidden — all gaps documented honestly
 - [ ] Honest sign-off recommendation given
-- [ ] Stage 07 review checklist presented and all items addressed
-- [ ] Engineer explicitly approves the review report
+- [ ] Stage 07 full checklist (both phases) presented and all items addressed
+- [ ] Engineer explicitly approves the full review report
 - [ ] `state.yaml` updated: `current_stage: 8`, `stage_07: approved`
+
+---
+
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required | Used For |
+|----------|--------|-----------------|----------|
+| `project-brief.md` | Stage 01 | APPROVED | Original intent to validate against |
+| `SRS.md` | Stage 02 | APPROVED | Requirements source for traceability matrix |
+| `use-cases.md` | Stage 02 | APPROVED | Flow coverage validation |
+| `design.md` | Stage 03 | APPROVED | Baseline for implementation comparison |
+| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Contract compliance check |
+| `user-stories.md` | Stage 04 | APPROVED | Story coverage check |
+| `plan.md` | Stage 04 | APPROVED | Task completion baseline |
+| Source code + `TASK-NNN-notes.md` | Stage 05 | APPROVED | Implementation to assess |
+| `test-plan.md` | Stage 06 | APPROVED | Testing strategy and coverage targets |
+| `test-results.md` | Stage 06 | APPROVED | Honest results to verify |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `review-report.md` | `artifacts/07-review/review-report.md` | Stage 08 |
+
+### Pre-Stage Verification
+
+Before beginning Stage 07, confirm:
+1. All prior stage artifacts exist and have `status: APPROVED`
+2. `state.yaml` shows `stage_06: approved`
+3. All Stage 05 tasks are marked complete
+
+If any check fails, stop and surface to engineer before proceeding.
 
 ---
 

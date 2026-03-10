@@ -102,6 +102,7 @@ Consistent IDs enable end-to-end traceability across all artifacts.
 | Functional Requirement   | `FR-NNN`  | `FR-001`  |
 | Non-Functional Req.      | `NFR-NNN` | `NFR-003` |
 | Use Case                 | `UC-NNN`  | `UC-012`  |
+| User Story               | `US-NNN`  | `US-012`  |
 | Component                | `COMP-NN` | `COMP-04` |
 | API Endpoint             | `API-NNN` | `API-007` |
 | Task                     | `TASK-NNN`| `TASK-023`|

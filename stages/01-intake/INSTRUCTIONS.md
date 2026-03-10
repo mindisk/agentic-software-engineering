@@ -99,6 +99,28 @@ The stage is complete when:
 
 ---
 
+## Communication Protocol
+
+### Formal Inputs
+
+| Artifact | Source | Status Required |
+|----------|--------|-----------------|
+| High-level specification | Provided by engineer at pipeline invocation | N/A |
+| `state.yaml` | `.agentic/features/<feature>/state.yaml` | Any |
+
+### Formal Outputs
+
+| Artifact | Path | Consumed By |
+|----------|------|-------------|
+| `project-brief.md` | `artifacts/01-intake/project-brief.md` | Stages 02, 03, 04, 07, 08 |
+
+### Pre-Stage Verification
+
+Stage 01 is the pipeline entry point — no prior approved artifacts are required.
+Verify that `state.yaml` exists or is being initialised for the feature.
+
+---
+
 ## Common Failure Modes to Avoid
 
 - Writing a brief that just paraphrases the original spec without adding structure
