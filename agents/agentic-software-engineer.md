@@ -62,18 +62,39 @@ For `artifacts.path`:
 
 If `artifacts.path` is missing from `config.yaml`, default to `.agentic/features` (relative to product repo) and note the assumption.
 
-### 2. Read your memory
+### Feature folder structure
 
-Memory lives in three files under `.claude/agent-memory/agentic-software-engineer/`.
-Read all three at session start before doing anything else.
+Every feature is self-contained under a single folder. All documents live here:
 
-| File | Contains |
-|------|----------|
-| `PLAN.md` | Active feature, current stage, key decisions made, open questions |
-| `FINDINGS.md` | Discoveries per stage, surfaced conflicts, Q&A resolutions, codebase patterns, anything to avoid re-reading |
-| `PROGRESS.md` | Session log (chronological), tasks completed, errors from `error_log`, test results |
+```
+<artifacts.path>/<feature>/
+├── memory/
+│   ├── PLAN.md          ← active stage, key decisions, open questions
+│   ├── FINDINGS.md      ← codebase patterns, Q&A resolutions, discoveries
+│   └── PROGRESS.md      ← session log, tasks completed, errors
+└── artifacts/
+    ├── 01-intake/
+    │   └── project-brief.md
+    ├── 02-requirements/
+    │   ├── SRS.md
+    │   └── use-cases.md
+    ├── 03-design/
+    │   ├── design.md
+    │   └── api-contracts.md   (only if external API)
+    ├── 04-planning/
+    │   ├── user-stories.md
+    │   └── plan.md
+    ├── 05-implementation/
+    │   └── TASK-NNN-notes.md  (one per task)
+    ├── 06-testing/
+    │   ├── test-plan.md
+    │   └── test-results.md
+    └── 07-review/
+        └── review-report.md
+```
 
-If any file does not exist yet, create it empty — do not treat missing files as an error.
+Pipeline state (`state.yaml`) is the only exception — it lives in the product repo at
+`.agentic/features/<feature>/state.yaml` so it is versioned with the code.
 
 ---
 
@@ -87,6 +108,21 @@ Ask the engineer which feature you are working on, then read:
 This gives you: `current_stage`, `feature_status`, the `qa_log`
 (questions already answered — do not ask these again), and the `error_log`
 (failed approaches — do not repeat these).
+
+### Read your memory
+
+Once the feature is known, read the three memory files from:
+```
+<artifacts.path>/<feature>/memory/
+```
+
+| File | Contains |
+|------|----------|
+| `PLAN.md` | Active feature, current stage, key decisions made, open questions |
+| `FINDINGS.md` | Discoveries per stage, surfaced conflicts, Q&A resolutions, codebase patterns, anything to avoid re-reading |
+| `PROGRESS.md` | Session log (chronological), tasks completed, errors from `error_log`, test results |
+
+If any file does not exist yet, create it empty — do not treat missing files as an error.
 
 ### Resuming a stage already in progress
 
@@ -148,9 +184,10 @@ error_log: []
 #     resolution: RESOLVED | DEFERRED | ESCALATED
 ```
 
-Also create the artifact directory structure at the configured path:
+Also create the artifact and memory directory structure at the configured path:
 ```bash
 mkdir -p <artifacts.path>/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
+mkdir -p <artifacts.path>/<feature>/memory
 ```
 
 Note: `state.yaml` always lives in the product repo at `.agentic/features/<feature>/state.yaml`
@@ -938,7 +975,8 @@ Also log to `PROGRESS.md` in memory: one line per strike with the error ID.
 ## Memory Instructions
 
 Memory is split across three files. Update each separately at session end.
-All files live at `.claude/agent-memory/agentic-software-engineer/`.
+All files live at `<artifacts.path>/<feature>/memory/` — next to the feature's artifacts,
+not in any global config folder. Memory is feature-scoped.
 
 ### `PLAN.md` — update when anything structural changes
 

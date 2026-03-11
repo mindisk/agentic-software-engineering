@@ -6,10 +6,17 @@
 # Run this once per product repo.
 #
 # Usage:
-#   ./bootstrap.sh <product-repo-path> "<project-name>"
+#   ./bootstrap.sh <product-repo-path> "<project-name>" [artifacts-option]
 #
-# Example:
-#   ./bootstrap.sh ~/projects/my-app "My Application"
+# artifacts-option (optional, skips the interactive prompt):
+#   1            → inside the product repo (.agentic/features/)
+#   2            → outside the repo (~/agentic-artifacts/<project>/)  [default]
+#   /some/path   → custom absolute path
+#
+# Examples:
+#   ./bootstrap.sh ~/projects/my-app "My Application" 2
+#   ./bootstrap.sh ~/projects/my-app "My Application" 1
+#   ./bootstrap.sh ~/projects/my-app "My Application" /data/artifacts
 # =============================================================================
 
 set -euo pipefail
@@ -18,10 +25,12 @@ ENGINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -lt 2 ]; then
   echo ""
-  echo "Usage: ./bootstrap.sh <product-repo-path> \"<project-name>\""
+  echo "Usage: ./bootstrap.sh <product-repo-path> \"<project-name>\" [artifacts-option]"
+  echo ""
+  echo "  artifacts-option:  1 = inside repo  |  2 = outside repo (default)  |  /abs/path = custom"
   echo ""
   echo "Example:"
-  echo "  ./bootstrap.sh ~/projects/my-app \"My Application\""
+  echo "  ./bootstrap.sh ~/projects/my-app \"My Application\" 2"
   echo ""
   exit 1
 fi
@@ -52,21 +61,37 @@ mkdir -p "$PRODUCT_REPO/.agentic/features"
 # They do not need to live inside the product repo.
 # ------------------------------------------------------------------
 
-echo "Where should pipeline artifacts (specs, designs, plans) be stored?"
-echo ""
-echo "  1) Inside the product repo  → .agentic/features/  (committed with code)"
-echo "  2) Outside the product repo → ~/agentic-artifacts/$PROJECT_NAME/  (local only)"
-echo "  3) Custom path              → enter your own absolute path"
-echo ""
-read -rp "Choice [1/2/3, default=2]: " ARTIFACTS_CHOICE
-ARTIFACTS_CHOICE="${ARTIFACTS_CHOICE:-2}"
+if [ $# -ge 3 ]; then
+  ARG3="$3"
+  case "$ARG3" in
+    1) ARTIFACTS_CHOICE="1" ;;
+    2) ARTIFACTS_CHOICE="2" ;;
+    /*) ARTIFACTS_CHOICE="3"; ARTIFACTS_PATH_CUSTOM="$ARG3" ;;
+    *)
+      echo "Error: artifacts-option must be 1, 2, or an absolute path starting with /"
+      exit 1
+      ;;
+  esac
+else
+  echo "Where should pipeline artifacts (specs, designs, plans) be stored?"
+  echo ""
+  echo "  1) Inside the product repo  → .agentic/features/  (committed with code)"
+  echo "  2) Outside the product repo → ~/agentic-artifacts/$PROJECT_NAME/  (local only)"
+  echo "  3) Custom path              → enter your own absolute path"
+  echo ""
+  read -rp "Choice [1/2/3, default=2]: " ARTIFACTS_CHOICE
+  ARTIFACTS_CHOICE="${ARTIFACTS_CHOICE:-2}"
+  if [ "$ARTIFACTS_CHOICE" = "3" ]; then
+    read -rp "Artifacts path (absolute): " ARTIFACTS_PATH_CUSTOM
+  fi
+fi
 
 case "$ARTIFACTS_CHOICE" in
   1)
     ARTIFACTS_PATH=".agentic/features"
     ;;
   3)
-    read -rp "Artifacts path (absolute): " ARTIFACTS_PATH
+    ARTIFACTS_PATH="$ARTIFACTS_PATH_CUSTOM"
     ;;
   *)
     ARTIFACTS_PATH="$HOME/agentic-artifacts/$(echo "$PROJECT_NAME" | tr '[:upper:] ' '[:lower:]-')"

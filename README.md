@@ -48,8 +48,16 @@ git clone <this-repo> ~/tools/agentic-software-engineering
 ### 2. Bootstrap a product repo (once per project)
 
 ```bash
-~/tools/agentic-software-engineering/bootstrap.sh /path/to/product-repo "Project Name"
+~/tools/agentic-software-engineering/bootstrap.sh /path/to/product-repo "Project Name" 2
 ```
+
+The third argument sets where pipeline artifacts are stored — no interactive prompt:
+
+| Option | Location |
+|--------|----------|
+| `1` | Inside the product repo (`.agentic/features/`) — committed with code |
+| `2` | Outside the repo (`~/agentic-artifacts/<project>/`) — local only *(recommended)* |
+| `/abs/path` | Custom absolute path |
 
 This creates:
 - `.agentic/config.yaml` — points to the engine, stores the project name
