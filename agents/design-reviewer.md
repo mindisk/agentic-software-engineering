@@ -42,10 +42,12 @@ Feature: <feature-name>
 SRS path: <path to approved SRS.md>
 Use-cases path: <path to approved use-cases.md>
 Design draft path: <path to design.md draft>
-API contracts path: <path to api-contracts.md draft, or N/A>
+Constitution path: <path to .agentic/constitution.md, or N/A>
 ```
 
-Read all four documents fully before forming any judgement.
+Read all provided documents fully before forming any judgement.
+If the constitution is present, read it in full — it defines organizational rules
+that the design must follow regardless of whether the author acknowledged them.
 
 ---
 
@@ -98,7 +100,19 @@ For each COMP-NN in the design, verify:
 
 A component with a name but no interface is underspecified.
 
-### Step 6 — Check internal consistency
+### Step 6 — Constitutional compliance check (if constitution loaded)
+
+If the constitution is present, check every article with `check_at: design` or
+`check_at: all` against the design:
+
+- `COMPLIANT` — the design follows this article
+- `EXCEPTION` — the design violates this article; check whether an ADR covers it.
+  If no ADR covers it, mark as `UNDOCUMENTED EXCEPTION` — this is a blocking gap.
+- `N/A` — article does not apply to this feature
+
+An undocumented exception is a gap. Do not soften it.
+
+### Step 7 — Check internal consistency
 
 Flag any of the following:
 - A component referenced by another component that is not defined
@@ -108,7 +122,7 @@ Flag any of the following:
 - Conflicting statements between sections (e.g. data model says field X is
   nullable, API contract says it is required)
 
-### Step 7 — Produce the review report
+### Step 8 — Produce the review report
 
 Return to the coordinator with this structure:
 
@@ -119,6 +133,7 @@ Return to the coordinator with this structure:
 - FR-NNN coverage: [X]/[Y] COVERED, [A] PARTIAL, [B] MISSING
 - NFR-NNN coverage: [X]/[Y] COVERED, [A] PARTIAL, [B] MISSING
 - Use-case flows traced: [X]/[Y]
+- Constitutional compliance: [X] COMPLIANT, [Y] EXCEPTION (ADR-covered), [Z] UNDOCUMENTED EXCEPTION — or N/A if no constitution
 
 ### Gaps
 
@@ -142,6 +157,12 @@ Return to the coordinator with this structure:
 | Flow | Gap |
 |------|-----|
 | UC-003 error flow | No component handles the timeout case — flow terminates with no specified outcome |
+
+#### Constitutional compliance (if constitution loaded)
+| Article | Status | Notes |
+|---------|--------|-------|
+| Article 1 — [name] | COMPLIANT | |
+| Article 3 — [name] | UNDOCUMENTED EXCEPTION | Design violates this article; no ADR found |
 
 ### Verdict
 READY FOR ENGINEER — no blocking gaps found.

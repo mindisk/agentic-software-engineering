@@ -76,13 +76,13 @@ These apply to every PR regardless of stage:
 
 **PR title format:** `agentic/<feature>/03-design: system design`
 
-**Artifacts:** `design.md` (always) + `api-contracts.md` (only if an external API is required)
+**Artifacts:** `design.md` (always — Section 4 contains interface contracts if the feature exposes any interface)
 
 - [ ] Architecture diagram or description is clear at the component level
 - [ ] Every component has a defined responsibility and boundary
 - [ ] Data model covers all entities mentioned in requirements
 - [ ] Relationships between entities are defined (one-to-many, etc.)
-- [ ] `api-contracts.md` present if the feature exposes an external API; explicitly N/A otherwise
+- [ ] Section 4 (Interface contracts) in design.md: complete if feature exposes any interface (API, CLI, SDK, events), explicitly N/A otherwise
 - [ ] API contracts include: endpoint, method, request schema, response schema, error codes
 - [ ] Technology choices have documented rationale
 - [ ] Non-functional requirements from SRS are addressed in the design (e.g. scalability approach)

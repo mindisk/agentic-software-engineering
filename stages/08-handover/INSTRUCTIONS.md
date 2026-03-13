@@ -1,8 +1,8 @@
-# Stage 08 — Liveops Handover
+# Stage 08 — Support Handover
 
 ## Purpose
 
-Produce a complete operations manual that enables liveops to own the feature
+Produce a complete operations manual that enables support team to own the feature
 from day one — without needing to ask the engineering team basic questions.
 This is a practical, operator-facing document: it covers how to use the feature,
 how to configure and deploy it, how to monitor it, and what to do when things
@@ -21,7 +21,6 @@ who will run and support the feature in production.
 | `SRS.md` | Stage 02, APPROVED | Yes |
 | `use-cases.md` | Stage 02, APPROVED | Yes |
 | `design.md` | Stage 03, APPROVED | Yes |
-| `api-contracts.md` | Stage 03, APPROVED | If it exists |
 | `plan.md` | Stage 04, APPROVED | Yes |
 | Source code | Stage 05, APPROVED | Yes |
 | `test-results.md` | Stage 06, APPROVED | Yes |
@@ -51,7 +50,7 @@ Read all approved artifacts before writing anything. Pay particular attention to
 
 Ask the engineer (one pass only, batch all questions):
 
-1. **Audience** — Who is the liveops team? Are they engineers, non-technical
+1. **Audience** — Who is the support team? Are they engineers, non-technical
    operators, or a mix? This sets the technical depth of the document.
 2. **Configuration** — What is configurable post-deploy (feature flags, env vars,
    admin settings)? Are there values that require operator attention at launch?
@@ -65,31 +64,26 @@ Ask the engineer (one pass only, batch all questions):
 If the engineer says "proceed with your best judgment", document your assumptions
 clearly in the manual's Assumptions section.
 
-### Step 3 — Write operations-manual.md
+### Step 3 — Delegate to `handover-writer`
 
-Use the template at `stages/08-handover/templates/operations-manual.md`.
+After receiving engineer answers from the question pass, invoke the
+`handover-writer` specialist to produce `operations-manual.md`.
 
-Complete all nine sections:
-1. **Feature overview** — what it does, who uses it, and why it matters to ops
-2. **User guide** — step-by-step: how end users interact with the feature
-3. **Configuration** — all configurable settings, defaults, required values
-4. **Deployment & activation** — how to deploy, enable, and verify the feature
-5. **Monitoring** — key metrics, dashboards, log patterns to watch
-6. **Alerting** — what alerts exist, their thresholds, and expected response
-7. **Troubleshooting** — known failure modes, symptoms, and resolution steps
-8. **Rollback** — how to safely disable or revert the feature
-9. **Known limitations & contacts** — accepted gaps and who to escalate to
+Construct the brief using inputs from this stage (see main agent delegation
+section: "Stage 08 — Invoking `handover-writer`").
 
-Write plainly. Avoid jargon where possible. If the audience is non-technical,
-use numbered steps and screenshots/diagrams rather than code blocks. If technical,
-code examples are appropriate.
+**The specialist handles:** reading all prior artifacts, extracting configuration
+items, failure modes, and monitoring signals from NFR-NNN, converting use-case
+flows into user guide steps, writing all nine sections of the operations manual,
+and marking gaps as `[REQUIRES INPUT FROM: ...]` where information is unavailable.
 
 ### Step 4 — Present for engineer approval
 
-Present a summary to the engineer:
-- Who this document is written for (assumed audience)
-- Any gaps where information was not available from prior artifacts (document as
-  `[REQUIRES INPUT FROM: <role>]` in the manual rather than guessing)
+After the specialist returns, verify all nine sections are present, then present
+a summary to the engineer:
+- Who this document is written for (audience confirmed)
+- Gap count: how many `[REQUIRES INPUT FROM: ...]` markers remain and in which sections
+- Engineer decides: fill gaps now, or accept gaps with noted follow-up actions
 - Filled-in Stage 08 review checklist (from Protocol 4)
 
 **Wait for explicit engineer approval before marking the feature complete.**
@@ -99,12 +93,12 @@ Present a summary to the engineer:
 ## Done Criteria
 
 - [ ] `operations-manual.md` written with all nine sections
-- [ ] Written for the correct audience (technical depth matches liveops team)
+- [ ] Written for the correct audience (technical depth matches support team)
 - [ ] Every configurable setting is documented with its default and valid range
 - [ ] Deployment steps are clear and ordered — no assumed knowledge
 - [ ] At least one troubleshooting entry per significant failure mode in the design
 - [ ] Rollback procedure is documented and does not require guesswork
-- [ ] Any gaps requiring liveops input are explicitly marked `[REQUIRES INPUT FROM: <role>]`
+- [ ] Any gaps requiring support team input are explicitly marked `[REQUIRES INPUT FROM: <role>]`
 - [ ] Stage 08 review checklist presented and all items addressed
 - [ ] Engineer explicitly approves
 - [ ] `state.yaml` updated: `stage_08: approved`, `feature_status: complete`
@@ -120,8 +114,7 @@ Present a summary to the engineer:
 | `project-brief.md` | Stage 01 | APPROVED | Feature scope and business context for overview section |
 | `SRS.md` | Stage 02 | APPROVED | NFRs become monitoring targets; FRs inform user guide |
 | `use-cases.md` | Stage 02 | APPROVED | User flows for the user guide section |
-| `design.md` | Stage 03 | APPROVED | Component failure modes for troubleshooting section |
-| `api-contracts.md` | Stage 03 | APPROVED (if exists) | API reference for operator guide |
+| `design.md` | Stage 03 | APPROVED | Component failure modes for troubleshooting; Section 4 for interface reference |
 | `plan.md` | Stage 04 | APPROVED | Task list to confirm all components are covered |
 | Source code | Stage 05 | APPROVED | Configuration keys, env vars, and deployment steps |
 | `test-results.md` | Stage 06 | APPROVED | Known failure modes confirmed by testing |
@@ -131,7 +124,7 @@ Present a summary to the engineer:
 
 | Artifact | Path | Consumed By |
 |----------|------|-------------|
-| `operations-manual.md` | `artifacts/08-handover/operations-manual.md` | Liveops team |
+| `operations-manual.md` | `artifacts/08-handover/operations-manual.md` | Support team |
 
 ### Pre-Stage Verification
 

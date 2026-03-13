@@ -46,71 +46,36 @@ Focus areas for this stage:
 
 Do not proceed with writing until answers are received or defaults are accepted.
 
-### Step 3 — Write the Software Requirements Specification
+### Step 3 — Delegate to `requirements-analyst`
 
-Produce `SRS.md` using the template at `stages/02-requirements/templates/SRS.md`.
+After receiving all answers from the engineer's question pass, invoke the
+`requirements-analyst` specialist to produce `SRS.md` and `use-cases.md`.
 
-**Functional Requirements (FR-NNN):**
-- One requirement per ID
-- State what the system SHALL do, not how — use RFC 2119 keywords (`SHALL`/`MUST` for mandatory, `SHOULD` for recommended, `MAY` for optional)
-- Include at least one Given/When/Then scenario per requirement — scenarios are the acceptance criteria
-- Group by feature area or user flow
+Construct the brief using the inputs from this stage (see main agent delegation
+section: "Stage 02 — Invoking `requirements-analyst`").
 
-**Requirement format (OpenSpec-compatible):**
-```markdown
-### FR-001: User authentication
+**The specialist handles:** extracting scope items, converting QA log answers
+into requirements, writing all FR-NNN and NFR-NNN in OpenSpec format with
+Given/When/Then scenarios, writing use-cases.md with UC-NNN flows and FR→UC
+traceability, and running the constitution check for requirements-stage articles.
 
-Users SHALL be authenticated before accessing any protected resource.
+**If the specialist returns a REQUIREMENTS BLOCKER:** relay the question to the
+engineer, record the answer in `qa_log`, re-invoke the specialist with the
+updated QA log.
 
-#### Scenario: Valid credentials
-Given a registered user provides a valid email and password
-When they submit the login form
-Then they receive a session token and are redirected to the dashboard
+### Step 4 — Validate and present for engineer approval
 
-#### Scenario: Invalid credentials
-Given a user provides an incorrect password
-When they submit the login form
-Then they receive a 401 response with no session created
-```
-
-Every requirement must have: RFC 2119 language in the statement + at least one scenario.
-Error paths are explicit scenarios, not implied by the happy-path scenario.
-
-**Non-Functional Requirements (NFR-NNN):**
-- Performance: response times, throughput
-- Availability: uptime targets, recovery time
-- Security: authentication, authorisation, data protection
-- Scalability: user/data volume targets
-- Maintainability: logging, monitoring, deployment
-
-**User Stories (linked to FR-NNN):**
-- Format: "As a [persona], I want to [action] so that [outcome]"
-- Link each story to one or more FR-NNN
-
-### Step 4 — Write Use Cases
-
-Produce `use-cases.md` using the template at `stages/02-requirements/templates/use-cases.md`.
-
-For each primary use case:
-- Main success scenario (step by step)
-- Alternative flows
-- Error/exception flows
-- Pre-conditions and post-conditions
-
-### Step 5 — Requirements validation pass and present for engineer approval
-
-Before presenting:
+After the specialist returns, verify:
 - Every FR-NNN traces back to something in the project brief
-- No two requirements contradict each other
-- Every FR-NNN uses RFC 2119 language (`SHALL`/`MUST`/`SHOULD`/`MAY`) in its statement
-- Every FR-NNN has at least one Given/When/Then scenario; error paths have their own explicit scenarios
-- NFRs have measurable targets (no "must be fast")
-- Edge cases are covered as scenarios within the relevant FR-NNN or flagged as `[OPEN]`
+- Every FR-NNN has at least two scenarios (happy path + error/edge case)
+- NFRs have measurable targets with units (no "must be fast")
+- FR→UC traceability table is present in use-cases.md
+- Any constitution articles flagged as EXCEPTION are surfaced to the engineer
 
 Present a summary to the engineer:
 - Requirement count (X functional, Y non-functional, Z use cases)
-- Any significant decisions made during this stage
-- Conflicts found and how they were resolved
+- Assumptions the specialist made (each needs confirmation)
+- Constitution compliance results (all COMPLIANT, or exceptions listed)
 - Open items carried forward
 - Filled-in Stage 02 review checklist (from Protocol 4)
 

@@ -59,6 +59,7 @@ Artifacts base path: <artifacts.path>/<feature>/artifacts/
 Source code path: <src/ path in product repo>
 Review report output path: <artifacts.path>/<feature>/artifacts/07-review/review-report.md
 Review report template path: <engine.path>/stages/07-review/templates/review-report.md
+Constitution path: <path to .agentic/constitution.md, or N/A>
 
 # Phase 2 only:
 Phase 1 engineer decision: <accepted gaps / required actions / "no gaps, proceed">
@@ -77,7 +78,7 @@ attempt to read the entire codebase.
 Read in this order:
 1. `SRS.md` — extract every FR-NNN and NFR-NNN into a working list
 2. `use-cases.md` — extract every UC-NNN
-3. `design.md` and `api-contracts.md` (if exists)
+3. `design.md` (Section 4 has interface contracts if applicable)
 4. `plan.md` — extract every TASK-NNN
 5. All `TASK-NNN-notes.md` files from Stage 05
 6. `test-plan.md` and `test-results.md`
@@ -154,13 +155,13 @@ before re-invoking you for Phase 2.
 
 ### Step 5 — Review implementation against design
 
-Read `design.md`, `api-contracts.md` (if exists), and all `TASK-NNN-notes.md` files.
+Read `design.md` and all `TASK-NNN-notes.md` files.
 Cross-reference against source code files named in the notes.
 
 Flag every deviation:
 - Architectural decisions made during implementation without design approval
 - Missing error handling that the design specifies
-- API response shapes that differ from `api-contracts.md`
+- Interface behaviour that differs from the contracts defined in design.md Section 4
 - Deviations already noted in TASK-NNN-notes.md (record as reviewed, not new)
 
 For each deviation, assess impact: Low / Medium / High.
@@ -179,19 +180,47 @@ Flag if:
 Also check: does the coverage percentage match the target in `test-plan.md`?
 If not, document the gap.
 
-### Step 7 — Write review-report.md
+### Step 7 — Constitutional compliance check (if constitution present)
 
-Use the template at the path provided in the brief. Complete all eight sections:
+If `.agentic/constitution.md` was provided in the brief, read it. For each article
+with `check_at: review` or `check_at: all`:
+
+Review the completed implementation against the article's rule. Assess:
+- `COMPLIANT` — implementation follows the rule as stated
+- `EXCEPTION` — implementation violates the article; check whether an approved ADR
+  covers the exception (`artifacts/03-design/adr/`)
+- `N/A` — article does not apply to this feature (state why)
+
+**An undocumented exception is a defect, not a finding to accept.**
+If the implementation violates a constitution article and no ADR covers it, it
+must appear in the Phase 2 report as a blocking gap — the same weight as a HIGH
+design deviation. The engineer must either produce a retrospective ADR or fix
+the violation before sign-off.
+
+Record for each article:
+```markdown
+| Article | Rule summary | Status | Evidence / ADR reference |
+|---------|-------------|--------|--------------------------|
+| Article 2 — No secrets in code | MUST not store credentials in source | COMPLIANT | No hardcoded secrets found |
+| Article 4 — Integration testing | MUST use real instances, not mocks | EXCEPTION | ADR-0002 covers this for payment sandbox |
+```
+
+If no constitution is provided, note `N/A — no constitution present` and skip.
+
+### Step 8 — Write review-report.md
+
+Use the template at the path provided in the brief. Complete all nine sections:
 
 1. **Feature summary** — what was built, alignment with project-brief.md
 2. **Pipeline summary** — one row per stage, status and key decisions
 3. **Requirements traceability matrix** — the full matrix from Phase 1,
    updated with engineer's Phase 1 decisions on accepted gaps
 4. **Test results summary** — pass/fail counts, coverage, untested areas
-5. **Design deviations** — from Step 5, with impact ratings
-6. **Open items status** — from Phase 1, updated with engineer's decisions
-7. **Remaining risks** — gaps accepted as-is, deferred items, known limitations
-8. **Sign-off recommendation** — see rules below
+5. **Design deviations** — from Step 6, with impact ratings
+6. **Constitutional compliance table** — from Step 7, or `N/A — no constitution present`
+7. **Open items status** — from Phase 1, updated with engineer's decisions
+8. **Remaining risks** — gaps accepted as-is, deferred items, known limitations
+9. **Sign-off recommendation** — see rules below
 
 ### Sign-off recommendation rules
 
@@ -212,14 +241,15 @@ Use the template at the path provided in the brief. Complete all eight sections:
 **APPROVE WITH CONDITIONS** is not a valid recommendation. Either the conditions
 are met (APPROVE) or they are not (DO NOT APPROVE with required actions listed).
 
-### Step 8 — Return Phase 2 findings to coordinator
+### Step 9 — Return Phase 2 findings to coordinator
 
 Return:
 1. Design deviation summary (count and highest impact level)
 2. Test quality assessment (any flags found)
-3. Remaining risks
-4. Sign-off recommendation with rationale
-5. Path to completed `review-report.md`
+3. Constitutional compliance summary (COMPLIANT / [N] EXCEPTIONS / N/A)
+4. Remaining risks
+5. Sign-off recommendation with rationale
+6. Path to completed `review-report.md`
 
 ---
 

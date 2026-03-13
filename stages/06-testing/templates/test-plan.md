@@ -25,7 +25,7 @@ part of the sign-off record.
 
 - `.agentic/features/FEATURE_NAME/artifacts/02-requirements/SRS.md` (APPROVED)
 - `.agentic/features/FEATURE_NAME/artifacts/02-requirements/use-cases.md` (APPROVED)
-- `.agentic/features/FEATURE_NAME/artifacts/03-design/api-contracts.md` (APPROVED)
+- `.agentic/features/FEATURE_NAME/artifacts/03-design/design.md` — Section 4 (interface contracts, if applicable)
 
 ---
 
@@ -35,7 +35,7 @@ part of the sign-off record.
 
 - [What will be tested]
 - [e.g. All FR-NNN from SRS.md]
-- [e.g. All API endpoints in api-contracts.md]
+- [e.g. All interfaces in design.md Section 4]
 - [e.g. Error handling defined in use-cases.md]
 
 ### Out of Scope
@@ -52,7 +52,7 @@ part of the sign-off record.
 |------|-------------|----------------|-----------------|
 | Unit | Test individual functions/methods in isolation | [Framework] | [X]% line coverage |
 | Integration | Test component interactions with real or in-memory DB | [Framework] | All data layer operations |
-| API / Contract | Test API endpoints against api-contracts.md | [Framework] | All endpoints, all status codes |
+| API / Contract | Test interfaces against design.md Section 4 | [Framework] | All endpoints, all status codes |
 | E2E | Test full user flows end-to-end | [Framework] | Primary use cases from UC-NNN |
 
 ---

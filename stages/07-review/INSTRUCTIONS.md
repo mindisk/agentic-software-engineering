@@ -6,7 +6,7 @@ Provide a complete, honest assessment of the feature from specification through
 to implementation and testing. Verify every requirement was designed, implemented,
 and tested. Surface any gaps that remain.
 
-This is the final stage. It is not a rubber stamp.
+This stage is not a rubber stamp.
 
 ---
 
@@ -17,12 +17,14 @@ This is the final stage. It is not a rubber stamp.
 | `project-brief.md` | Stage 01, APPROVED | Yes |
 | `SRS.md` | Stage 02, APPROVED | Yes |
 | `use-cases.md` | Stage 02, APPROVED | Yes |
-| `design.md` | Stage 03, APPROVED | Yes |
+| `design.md` | Stage 03, APPROVED | Yes — Section 4 used for interface contract compliance check |
+| `adr/adr-NNNN-*.md` | Stage 03, APPROVED | If present — verify exceptions were honoured |
 | `plan.md` | Stage 04, APPROVED | Yes |
 | Source code | Stage 05, all tasks APPROVED | Yes |
 | `test-plan.md` | Stage 06, APPROVED | Yes |
 | `test-results.md` | Stage 06, APPROVED | Yes |
 | Implementation notes | Stage 05, per task | Yes |
+| `.agentic/constitution.md` | Product repo | If present — required for constitutional compliance check |
 
 ---
 
@@ -100,7 +102,7 @@ Compare implementation notes and code against the approved design.md. Flag:
 - Deviations not reviewed during Stage 05
 - Architectural decisions made during implementation without approval
 - Missing error handling specified in the design
-- API responses that differ from api-contracts.md
+- Interface behaviour that differs from the contracts in design.md Section 4
 
 #### Step 6 — Assess test quality
 
@@ -110,25 +112,54 @@ Review test-plan.md and test-results.md. Flag:
 - Tests that passed trivially (testing nothing meaningful)
 - Any failures hidden or glossed over in results
 
-#### Step 7 — Write review-report.md
+#### Step 7 — Security review and constitutional compliance check
+
+##### Step 7a — Invoke `security-reviewer` (Mode: implementation)
+
+Invoke the `security-reviewer` specialist (see main agent — Stage 07 Phase 2b delegation)
+in **Mode B (implementation)** to review the completed source code.
+The specialist checks OWASP Top 10 (A01–A05), design-vs-implementation security gaps,
+hardcoded secrets, and constitution compliance for security articles.
+
+Receive security findings. Any HIGH severity findings are blocking gaps in Phase 2.
+The engineer must either fix the violation or accept it as a documented risk before sign-off.
+
+##### Step 7b — Constitutional compliance check (if constitution loaded)
+
+If `.agentic/constitution.md` exists, run the constitution check against the completed
+implementation. For each article, assess:
+
+- `COMPLIANT` — implementation follows the rule
+- `EXCEPTION` — implementation violates the article; check that an approved ADR covers it
+- `N/A` — article does not apply to this feature
+
+**An undocumented exception is a defect.** If the implementation violates a constitution
+article and no ADR covers it, flag it as a blocking gap in Phase 2. The engineer must
+either produce a retrospective ADR or fix the violation before sign-off.
+
+Record the full compliance table in `review-report.md`.
+
+#### Step 8 — Write review-report.md
 
 Use the template at `stages/07-review/templates/review-report.md`.
 
-Complete all eight sections:
+Complete all sections:
 1. Feature summary
 2. Pipeline summary
 3. Requirements traceability matrix (FR + NFR + use cases) — built in Phase 1
 4. Test results summary — from Phase 2 quality assessment
 5. Design deviations
-6. Open items status — from Phase 1
-7. Remaining risks
-8. Sign-off recommendation — honest, not rubber-stamped
+6. Constitutional compliance table (if constitution loaded; N/A otherwise)
+7. Open items status — from Phase 1
+8. Remaining risks
+9. Sign-off recommendation — honest, not rubber-stamped
 
-#### Step 8 — Present Phase 2 and full review report for engineer sign-off
+#### Step 9 — Present Phase 2 and full review report for engineer sign-off
 
 Present to the engineer:
 - Design deviation summary (if any)
 - Test quality assessment
+- Constitutional compliance table (if constitution loaded)
 - Remaining risks
 - Sign-off recommendation with honest rationale
 - Full Stage 07 checklist (both phases, all items filled in)
@@ -149,7 +180,9 @@ on the feature.
 **Phase 2 — Quality Assessment**
 - [ ] Implementation vs. design comparison complete — deviations documented
 - [ ] Test quality assessed — superficial or missing coverage flagged
-- [ ] `review-report.md` written with all eight sections
+- [ ] `security-reviewer` invoked (Mode B) — HIGH findings resolved or accepted as documented risk
+- [ ] Constitutional compliance check run — all articles assessed, undocumented exceptions flagged
+- [ ] `review-report.md` written with all sections
 - [ ] No gaps hidden — all gaps documented honestly
 - [ ] Honest sign-off recommendation given
 - [ ] Stage 07 full checklist (both phases) presented and all items addressed
@@ -167,8 +200,8 @@ on the feature.
 | `project-brief.md` | Stage 01 | APPROVED | Original intent to validate against |
 | `SRS.md` | Stage 02 | APPROVED | Requirements source for traceability matrix |
 | `use-cases.md` | Stage 02 | APPROVED | Flow coverage validation |
-| `design.md` | Stage 03 | APPROVED | Baseline for implementation comparison |
-| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Contract compliance check |
+| `design.md` | Stage 03 | APPROVED | Baseline for implementation comparison; Section 4 for interface contract compliance |
+| `adr/adr-NNNN-*.md` | Stage 03 | APPROVED (if exists) | Verify constitution exceptions were documented |
 | `user-stories.md` | Stage 04 | APPROVED | Story coverage check |
 | `plan.md` | Stage 04 | APPROVED | Task completion baseline |
 | Source code + `TASK-NNN-notes.md` | Stage 05 | APPROVED | Implementation to assess |

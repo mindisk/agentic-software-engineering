@@ -17,7 +17,7 @@ for the feature, plus a test results document that forms part of the sign-off re
 |----------|--------|----------|
 | `SRS.md` | Stage 02, APPROVED | Yes |
 | `use-cases.md` | Stage 02, APPROVED | Yes |
-| `api-contracts.md` | Stage 03, APPROVED | If applicable |
+| `design.md` | Stage 03, APPROVED | Yes — Section 4 has interface contracts if applicable |
 | `plan.md` | Stage 04, APPROVED | Yes |
 | Source code | Stage 05, APPROVED | Yes |
 
@@ -139,7 +139,7 @@ Present a summary to the engineer:
 |----------|--------|-----------------|----------|
 | `SRS.md` | Stage 02 | APPROVED | Requirements to derive TC-NNN from |
 | `use-cases.md` | Stage 02 | APPROVED | Flows and edge cases to test |
-| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Contract tests |
+| `design.md` | Stage 03 | APPROVED | Interface contracts (Section 4) for contract tests if applicable |
 | `plan.md` | Stage 04 | APPROVED | Task acceptance criteria to verify |
 | Source code | Stage 05 | APPROVED | Implementation under test |
 

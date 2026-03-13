@@ -23,8 +23,9 @@ surfacing what is unknown, and producing a brief that a technical team could act
 
 ### Step 1 — First read
 
-Read the provided specification carefully. Do not produce any output yet.
-Identify:
+Read the provided specification carefully. Also read `state.yaml` → `qa_log` to find
+any answers already captured by the clarify pass (Step 1b of the main agent).
+Do not produce any output yet. Identify:
 
 - What is clearly stated
 - What is implied but not stated
@@ -34,9 +35,14 @@ Identify:
 
 ### Step 2 — Early question pass (BEFORE writing the brief)
 
-Following `protocols/question-protocol.md` and `protocols/uncertainty-rules.md`:
+**Check `qa_log` first.** The clarify pass may have already answered the core questions
+about scope, users, success criteria, and constraints. Do not re-ask anything already
+recorded there.
 
-Ask the engineer to clarify the top ambiguities. Focus on:
+If the clarify pass resolved all critical ambiguities, this step may be short or empty.
+That is the intended outcome — proceed to Step 3 with the context already in hand.
+
+For any remaining ambiguities not covered by the clarify pass, follow the Question Protocol:
 
 1. **Scope boundaries** — What is definitively in scope vs. out of scope?
 2. **Primary users** — Who is this for? What do they do with it?
@@ -44,7 +50,8 @@ Ask the engineer to clarify the top ambiguities. Focus on:
 4. **Hard constraints** — Any non-negotiable technical, regulatory, or time constraints?
 5. **Relation to existing systems** — Does this integrate with or replace anything?
 
-Batch all questions in one pass. Do not ask more than 7. Label each with a priority
+Batch all remaining questions in one pass. Do not ask more than 5 (clarify pass + Stage 01
+questions combined should not exceed 7 total). Label each with a priority
 (`[BLOCKING]`, `[HIGH]`, `[MEDIUM]`, `[LOW]`).
 
 Wait for answers before writing the brief.
@@ -126,5 +133,7 @@ Verify that `state.yaml` exists or is being initialised for the feature.
 - Writing a brief that just paraphrases the original spec without adding structure
 - Leaving success criteria vague ("the feature works correctly")
 - Not distinguishing between must-have and nice-to-have scope
-- Skipping the question pass because the spec "seems clear enough"
+- Re-asking questions already answered in the clarify pass (`qa_log`)
+- Running a full 7-question pass when the clarify pass already resolved the core ambiguities
+- Skipping the question pass entirely because the spec "seems clear enough" — check `qa_log` first, then decide
 - Inventing constraints or requirements not supported by the spec

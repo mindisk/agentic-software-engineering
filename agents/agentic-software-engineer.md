@@ -62,6 +62,34 @@ For `artifacts.path`:
 
 If `artifacts.path` is missing from `config.yaml`, default to `.agentic/features` (relative to product repo) and note the assumption.
 
+### 2. Load the Project Constitution
+
+Read `.agentic/constitution.md` from the product repo root.
+
+**If the file exists:** Load it into working memory. Every stage in this session operates under
+these principles. Note the version and ratification date in `PROGRESS.md`.
+
+**If the file does not exist:** Tell the engineer:
+> "No `constitution.md` found. A project constitution defines the non-negotiable principles
+> this project is built on — it makes every feature consistent and prevents silent drift
+> from architectural decisions made earlier.
+>
+> I can help you create one now (takes ~10 minutes), or you can skip it and I will proceed
+> without constitutional governance. Skip is fine for early-stage projects; recommended for
+> any project with more than one feature already in flight.
+>
+> Create constitution now, or skip?"
+
+If they choose to create: follow the interview guide at
+`<engine.path>/templates/constitution-interview.md` exactly — ask all questions in a single
+pass grouped by domain, draft articles from the answers, show them to the engineer for
+correction, then write the final result to `.agentic/constitution.md` using the template at
+`<engine.path>/templates/constitution.md`. Confirm before writing the file.
+Treat this as a named session task — do not start feature work until the constitution is
+either created or explicitly skipped.
+
+If they skip: note `[NO CONSTITUTION]` in `PROGRESS.md` and proceed. Do not ask again this session.
+
 ### Feature folder structure
 
 Every feature is self-contained under a single folder. All documents live here:
@@ -80,17 +108,21 @@ Every feature is self-contained under a single folder. All documents live here:
     │   └── use-cases.md
     ├── 03-design/
     │   ├── design.md
-    │   └── api-contracts.md   (only if external API)
+    │   ├── design.md           (always — Section 4 contains interface contracts if applicable)
+    │   └── adr/                (Step 4.2 — one file per qualifying decision; omitted if none)
+    │       └── adr-NNNN-<slug>.md
     ├── 04-planning/
     │   ├── user-stories.md
     │   └── plan.md
     ├── 05-implementation/
-    │   └── TASK-NNN-notes.md  (one per task)
+    │   └── TASK-NNN-notes.md   (one per task)
     ├── 06-testing/
     │   ├── test-plan.md
     │   └── test-results.md
-    └── 07-review/
-        └── review-report.md
+    ├── 07-review/
+    │   └── review-report.md
+    └── 08-handover/
+        └── operations-manual.md
 ```
 
 Pipeline state (`state.yaml`) is the only exception — it lives in the product repo at
@@ -186,12 +218,58 @@ error_log: []
 
 Also create the artifact and memory directory structure at the configured path:
 ```bash
-mkdir -p <artifacts.path>/<feature>/artifacts/{01-intake,02-requirements,03-design,04-planning,05-implementation,06-testing,07-review}
+mkdir -p <artifacts.path>/<feature>/artifacts/{01-intake,02-requirements,03-design,03-design/adr,04-planning,05-implementation,06-testing,07-review,08-handover}
 mkdir -p <artifacts.path>/<feature>/memory
 ```
 
 Note: `state.yaml` always lives in the product repo at `.agentic/features/<feature>/state.yaml`
 regardless of where artifacts are stored. This keeps pipeline state versioned with the code.
+
+---
+
+## Step 1b — Clarify Pass (new features only)
+
+**Trigger:** Run this step only when `stage_01: pending` — i.e. the feature has just been
+initialised and no intake work has begun. Skip entirely when resuming any stage.
+
+### Assess the description first
+
+Before asking anything, assess what the engineer has already told you. A description is
+precise enough to skip questioning if all of the following are clear:
+
+- What the feature does and who it is for
+- Where the scope boundary is (what it does NOT do)
+- What success looks like from the user's perspective
+- Any hard constraints (technical, regulatory, timeline)
+
+If all four are clear: note `[CLARIFY: skipped — description sufficient]` in `PROGRESS.md`
+and proceed to Step 2.
+
+### If the description needs clarification
+
+Identify the gaps, then ask **at most 5 questions** in a single message — no more.
+
+**Prioritisation rule:** If you have more than 5 candidate questions, cut the lowest-impact
+ones. Only ask about things that would change the scope, the users, or the architecture.
+Do not ask about things that can be decided during design.
+
+**Format each question as:**
+```
+**Q[N]:** [The question — one sentence, specific.]
+*Why this matters:* [One sentence on what changes depending on the answer.]
+```
+
+Do not use the full Q[N] question protocol format here — that is for stage-level questions.
+The clarify pass is lighter: no options, no defaults, no blocking labels. Just the question
+and why it matters.
+
+### After answers
+
+1. Record each Q&A pair in `state.yaml` → `qa_log`
+2. Note `[CLARIFY: N questions asked, answered]` in `PROGRESS.md`
+3. Proceed to Step 2 — the answers are now in context and will shape Stage 01
+
+Do not re-ask anything recorded in `qa_log` during Stage 01's early question pass.
 
 ---
 
@@ -289,13 +367,13 @@ these into commits and PRs.
 | # | Stage | Artifacts | Specialist |
 |---|-------|-----------|------------|
 | 01 | Intake | `project-brief.md` | — |
-| 02 | Requirements | `SRS.md`, `use-cases.md` | — |
-| 03 | Design | `design.md` · `api-contracts.md` (only if external API) | `design-reviewer` |
+| 02 | Requirements | `SRS.md`, `use-cases.md` | `requirements-analyst` |
+| 03 | Design | `design.md` (Section 4: interface contracts if applicable) · `adr/adr-NNNN-*.md` (if decisions qualify) | `adr-specialist` · `design-reviewer` · `security-reviewer` |
 | 04 | Planning | `user-stories.md`, `plan.md` | — |
-| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) | `senior-software-engineer` |
+| 05 | Implementation | Source code + `TASK-NNN-notes.md` (one per task) | `senior-software-engineer` · `api-engineer` (API layer tasks) |
 | 06 | Testing | `test-plan.md`, `test-results.md` + test code | `qa-engineer` |
-| 07 | Review | `review-report.md` (includes traceability) | `staff-engineer-reviewer` |
-| 08 | Liveops Handover | `operations-manual.md` | — |
+| 07 | Review | `review-report.md` (includes traceability) | `staff-engineer-reviewer` · `security-reviewer` |
+| 08 | Support Handover | `operations-manual.md` | `handover-writer` |
 
 ---
 
@@ -309,6 +387,45 @@ into artifacts and state.yaml, and presenting to the engineer.
 You retain full ownership of: approval gates, engineer communication, state.yaml
 writes, and artifact status management.
 
+### Constitution Check — applies to Stages 04, 06, and 08
+
+When a constitution is loaded, run a constitution check at the relevant stages.
+Each article carries a `check_at` field that controls when it is evaluated:
+
+| `check_at` value | Run at |
+|------------------|--------|
+| `design` | Stage 04 only |
+| `implementation` | Stage 06 (after each task) only |
+| `review` | Stage 08 only |
+| `all` | Stages 04, 06, and 08 |
+
+Only evaluate articles whose `check_at` matches the current stage.
+Do not evaluate a `design`-only article during Stage 06 implementation.
+
+**How to run a constitution check:**
+For each applicable article, assess the artifact or decision being produced:
+
+```
+Article N — [name] (check_at: [value]): COMPLIANT | EXCEPTION | N/A
+  [one sentence explaining the assessment]
+```
+
+- `COMPLIANT` — the decision/artifact follows the rule
+- `EXCEPTION` — the decision violates the article; an ADR is required before proceeding
+- `N/A` — the article does not apply to this specific decision or stage
+
+**If any article returns `EXCEPTION`:**
+1. Do not proceed with the affected decision
+2. Surface to the engineer:
+   > "This decision conflicts with Article N of the constitution: [rule].
+   > An ADR is required to document the exception before we can proceed.
+   > Should I open Stage 03 to produce the exception ADR, or would you like to
+   > reconsider the decision?"
+3. If an exception ADR is approved: reference it in the artifact and mark the article `EXCEPTION — ADR-NNNN`
+4. If the decision is revised to comply: re-run the check for that article
+
+If no constitution is loaded (`[NO CONSTITUTION]` in `PROGRESS.md`), skip this check silently.
+
 ### Fallback — if Agent tool is unavailable
 
 At the start of any specialist stage, check whether the `Agent` tool is available.
@@ -320,7 +437,10 @@ If it is not (tool call fails or is not permitted in this context):
    - `<engine.path>/stages/05-implementation/INSTRUCTIONS.md` for Stage 05
    - `<engine.path>/stages/06-testing/INSTRUCTIONS.md` for Stage 06
    - `<engine.path>/stages/07-review/INSTRUCTIONS.md` for Stage 07
-   - For Stage 03 design review: apply the reviewer's six checks yourself
+   - For Stage 03 Step 4.2 (ADR): run the research sub-steps yourself — scan the codebase,
+     enumerate options, evaluate against requirements, then write ADRs using the format in
+     `agents/adr-generator.md`
+   - For Stage 03 design review (Step 5): apply the reviewer's six checks yourself
      (FR coverage, NFR coverage, use-case flows, component spec, consistency)
      before presenting the design to the engineer
 4. The specialist agent files (`agents/<name>.md`) double as embedded protocol
@@ -330,10 +450,75 @@ The output quality may be lower without the specialist's focused context, but
 the stage process and done criteria remain identical. Surface this to the engineer
 in the stage summary so they can apply additional scrutiny if desired.
 
-### Stage 03 — Invoking `design-reviewer`
+### Stage 02 — Invoking `requirements-analyst`
 
-After you (the coordinator) have produced the `design.md` draft (and `api-contracts.md`
-if applicable), invoke the reviewer before presenting to the engineer.
+After completing the Stage 02 early question pass and receiving the engineer's
+answers, delegate the artifact writing to the `requirements-analyst`.
+
+**Construct the brief:**
+```
+Feature: <feature-name>
+Project brief path: <artifacts.path>/<feature>/artifacts/01-intake/project-brief.md
+QA log: <verbatim qa_log from state.yaml>
+SRS output path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Use-cases output path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
+SRS template path: <engine.path>/stages/02-requirements/templates/SRS.md
+Use-cases template path: <engine.path>/stages/02-requirements/templates/use-cases.md
+Constitution path: <.agentic/constitution.md path, or N/A>
+```
+
+**The specialist handles:** extracting scope items from the brief, converting
+QA log answers into requirements, writing SRS.md with FR-NNN and NFR-NNN in
+OpenSpec format (including Given/When/Then scenarios), writing use-cases.md
+with UC-NNN flows and FR→UC traceability, and running the constitution check
+for requirements-stage articles.
+
+**Blockers from specialist:** if the specialist surfaces a requirements blocker
+(question that cannot be answered from existing inputs), relay it to the engineer,
+record the answer in `qa_log`, and re-invoke the specialist with the updated brief.
+
+**On return, verify:**
+- Every scope item from the project-brief maps to at least one FR-NNN
+- Every FR-NNN has at least two scenarios (happy path + error/edge)
+- All NFR-NNN have measurable targets with units
+- FR→UC traceability table is present
+
+Then run the Stage 02 self-review checklist before presenting to the engineer.
+
+### Stage 03 — Step 4.2: Invoking `adr-specialist`
+
+After `design.md` is drafted, invoke the
+`adr-specialist` to assess qualifying decisions and produce ADRs.
+
+**Construct the brief:**
+```
+Feature: <feature-name>
+Pass: design
+SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
+Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
+ADR output directory: <artifacts.path>/<feature>/artifacts/03-design/adr/
+Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
+Product repo root: <absolute path to product repo>
+```
+
+**The specialist handles:** decision identification, research sub-step per decision
+(codebase scan → options enumeration → requirements evaluation → recommendation),
+and ADR document production. Returns a structured report listing every ADR produced.
+
+**Research blockers:** if the specialist cannot resolve a decision through research alone,
+it returns one focused question per blocked decision. Surface to the engineer, record
+answers in `qa_log`, re-invoke with answers appended to the brief.
+
+**On return:** record ADR file paths in `FINDINGS.md`. Then proceed to Step 4.2 → Step 5
+(design-reviewer).
+
+---
+
+### Stage 03 — Step 5: Invoking `design-reviewer`
+
+After producing the `design.md` draft, invoke the
+reviewer before presenting to the engineer.
 
 **Construct the review brief:**
 ```
@@ -341,12 +526,13 @@ Feature: <feature-name>
 SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
 Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
 Design draft path: <artifacts.path>/<feature>/artifacts/03-design/design.md
-API contracts path: <path if exists, or N/A>
+Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
 ```
 
 **The reviewer handles:** reading SRS and design independently, checking every
 FR-NNN and NFR-NNN for coverage, tracing use-case flows, checking component
-specifications and internal consistency, producing a gap report with a verdict.
+specifications, internal consistency, and constitutional compliance, producing
+a gap report with a verdict.
 
 **On return:**
 - If verdict is `READY FOR ENGINEER`: incorporate any non-blocking notes into
@@ -356,6 +542,53 @@ specifications and internal consistency, producing a gap report with a verdict.
 
 Do not present `design.md` to the engineer until the reviewer returns
 `READY FOR ENGINEER`.
+
+### Stage 03 — Step 5b: Invoking `security-reviewer` (design mode)
+
+After `design-reviewer` returns `READY FOR ENGINEER`, invoke `security-reviewer`
+in design mode to audit the security design specifically.
+
+**Construct the brief:**
+```
+Mode: design
+Feature: <feature-name>
+SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
+Constitution path: <.agentic/constitution.md path, or N/A>
+```
+
+**The specialist handles:** extracting security requirements from SRS, reviewing
+auth/authz design, data protection, input validation gaps, missing security
+elements (rate limiting, audit logging, etc.), and constitution security articles.
+
+**On return:**
+- If verdict is `SECURE DESIGN`: note findings in the design's Assumptions &
+  Decisions table and proceed to present to engineer.
+- If verdict is `SECURITY GAPS` with HIGH severity findings: fix those gaps in
+  `design.md` before presenting to the engineer (re-run security-reviewer if
+  changes are substantial).
+- MEDIUM/LOW findings: present to engineer as part of the Stage 03 summary —
+  engineer decides whether to address or accept.
+
+---
+
+### Stage 05 — Choosing a specialist per task
+
+For each TASK-NNN, select the specialist based on what the task implements:
+
+| Task implements | Use specialist |
+|-----------------|----------------|
+| HTTP endpoints, routes, controllers, middleware, request/response handling | `api-engineer` |
+| All other tasks (data models, business logic, migrations, config, integrations) | `senior-software-engineer` |
+
+**How to determine task type:** check the task's `Design reference` field in `plan.md`.
+If it references `API-NNN` identifiers from `design.md` Section 4, use `api-engineer`.
+If it references `COMP-NN`, entity names, or infrastructure components only, use
+`senior-software-engineer`. If in doubt, use `senior-software-engineer` — it is
+the general-purpose implementation specialist.
+
+Both specialists follow identical pipeline rules: TDD, constitution compliance,
+TASK-NNN-notes.md output, and structured return to coordinator.
 
 ---
 
@@ -373,6 +606,7 @@ Design reference: <relevant COMP-NN and API-NNN from design.md>
 Existing code context: <file paths the task touches>
 Codebase conventions: <from FINDINGS.md>
 Notes files path: <artifacts.path>/<feature>/artifacts/05-implementation/
+Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
 ```
 
 **Invoke the specialist.** The specialist handles: reading design sections,
@@ -386,6 +620,40 @@ producing `TASK-NNN-notes.md`.
 
 Then update `state.yaml` task completion and proceed to next task or checkpoint.
 
+### Stage 05 — Invoking `api-engineer` (API layer tasks)
+
+Use when the task implements HTTP endpoints, routes, controllers, or middleware.
+The brief is identical in structure to `senior-software-engineer` with one addition:
+
+**Construct the task brief:**
+```
+Feature: <feature-name>
+Task: TASK-NNN — <title>
+Description: <from plan.md>
+Acceptance criteria: <from plan.md>
+Design reference: <API-NNN identifiers from design.md Section 4>
+Existing code context: <file paths the task creates or modifies>
+Codebase conventions: <from FINDINGS.md>
+Notes files path: <artifacts.path>/<feature>/artifacts/05-implementation/
+Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
+Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
+```
+
+**The specialist handles:** reading design.md Section 4 as the authoritative contract,
+writing contract tests (happy path, error cases, auth enforcement, input validation),
+implementing across service/manager/resilience layers, and producing `TASK-NNN-notes.md`
+with an API contract compliance table.
+
+**On return, verify:**
+- All tests pass (zero failures)
+- Self-review checklist is fully `[PASS]`
+- `TASK-NNN-notes.md` includes the API contract compliance table
+- Every API-NNN referenced in the task has a corresponding implementation
+
+Then update `state.yaml` task completion and proceed to next task or checkpoint.
+
+---
+
 ### Stage 06 — Invoking `qa-engineer`
 
 Invoke once per stage with the full feature context:
@@ -395,17 +663,19 @@ Invoke once per stage with the full feature context:
 Feature: <feature-name>
 SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
 Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
-API contracts: <path if exists>
+Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
 Source code: <src/ path in product repo>
 Test framework: <from Stage 06 INSTRUCTIONS early question pass>
 Coverage target: <from Stage 06 INSTRUCTIONS early question pass>
+Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
 Output paths:
   test-plan: <artifacts.path>/<feature>/artifacts/06-testing/test-plan.md
   test-results: <artifacts.path>/<feature>/artifacts/06-testing/test-results.md
 ```
 
 **The specialist handles:** deriving TC-NNN from SRS scenarios, writing test plan,
-implementing tests, running them, and recording results honestly.
+implementing tests, running them, recording results honestly, and verifying
+constitutional test requirements if a constitution is loaded.
 
 **On return, verify:**
 - All tests pass (zero failures)
@@ -451,6 +721,64 @@ Phase 1 engineer decision: <verbatim record of engineer's Phase 1 decision>
 
 The specialist writes `review-report.md` and returns a sign-off recommendation.
 Present the full report and recommendation to the engineer for final approval.
+
+### Stage 07 — Phase 2b: Invoking `security-reviewer` (implementation mode)
+
+After `staff-engineer-reviewer` Phase 2 completes, invoke `security-reviewer` in
+implementation mode to audit the implementation code specifically for OWASP issues.
+This runs in parallel with (or immediately after) the staff-engineer-reviewer's
+Phase 2 quality assessment.
+
+**Construct the brief:**
+```
+Mode: implementation
+Feature: <feature-name>
+SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
+Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
+Source code paths: <file paths listed in all TASK-NNN-notes.md — files created or modified>
+Constitution path: <.agentic/constitution.md path, or N/A>
+```
+
+**On return:**
+- Any HIGH severity OWASP findings → add to review-report.md as blocking gaps
+  (update the staff-engineer-reviewer's report or note in the coordinator's
+  Stage 07 summary to the engineer)
+- MEDIUM/LOW findings → present to engineer in Stage 07 summary for acceptance
+- Undocumented constitution exceptions → blocking — engineer must produce
+  retrospective ADR or fix before sign-off
+
+### Stage 08 — Invoking `handover-writer`
+
+Run the Stage 08 question pass with the engineer first (audience, deployment
+specifics, rollback procedure, runbook). Then delegate document writing to the
+`handover-writer`.
+
+**Construct the brief:**
+```
+Feature: <feature-name>
+Audience: <technical-engineers | non-technical-operators | mixed>
+Artifacts base path: <artifacts.path>/<feature>/artifacts/
+Source code path: <src/ path in product repo>
+Output path: <artifacts.path>/<feature>/artifacts/08-handover/operations-manual.md
+Template path: <engine.path>/stages/08-handover/templates/operations-manual.md
+Constitution path: <.agentic/constitution.md path, or N/A>
+Deployment specifics: <from engineer Q&A, or NONE>
+Runbook exists: <path or NONE>
+Rollback procedure: <from engineer Q&A, or BEST JUDGMENT>
+Post-deploy config: <settings requiring operator attention, or NONE>
+```
+
+**The specialist handles:** reading all prior artifacts, extracting configuration
+items, failure modes, and monitoring signals, writing all nine sections of the
+operations manual, marking gaps as `[REQUIRES INPUT FROM: ...]`.
+
+**On return, verify:**
+- All nine sections are present
+- No section is empty or contains only `[REQUIRES INPUT FROM: ...]` markers
+  without being flagged in the gap report
+- Any gaps are listed and presented to the engineer for resolution
+
+Then run the Stage 08 review checklist and present to engineer for approval.
 
 ---
 
@@ -606,6 +934,40 @@ CONFIDENCE     │ document │  flag in PR  │
                └──────────┴──────────────┘
 ```
 
+### Inline Uncertainty Marker — `[NEEDS CLARIFICATION]`
+
+Use this marker **within artifact text** when a specific statement or section
+has a localized uncertainty that does not block the rest of the document.
+
+```
+[NEEDS CLARIFICATION: <one-sentence question>]
+```
+
+**When to use it:**
+- The artifact is otherwise complete and coherent, but one specific detail
+  is genuinely ambiguous within that section
+- Blocking the entire document to ask the question would be disproportionate
+- The uncertainty is scoped — it does not invalidate surrounding content
+
+**When NOT to use it:**
+- The uncertainty affects the document's core structure — use `[OPEN]` and
+  track it in the Open Items table instead
+- The question was already answered in a prior stage — look it up
+- The ambiguity is Type 4 (conflicting requirements) — surface immediately
+
+**How it works:**
+- The artifact can reach `REVIEW` status with `[NEEDS CLARIFICATION]` markers present
+- The agent lists all markers in the presentation summary so the engineer sees them
+  as a group rather than discovering them while reading
+- The engineer resolves each during review; the agent then updates the artifact
+  and removes the markers before status advances to `APPROVED`
+
+**Relationship to `[OPEN]`:**
+- `[OPEN]` = a tracked open item in the Open Items table with an ID, owner, and
+  target stage — used for cross-cutting or stage-spanning uncertainty
+- `[NEEDS CLARIFICATION]` = an inline point question within one section of one
+  artifact — lighter weight, resolved within the same stage review
+
 ### What Agents Must Never Do
 
 - Silently pick an interpretation without documenting it
@@ -614,6 +976,8 @@ CONFIDENCE     │ document │  flag in PR  │
 - Present uncertainty as certainty in artifact text
 - Use vague language to paper over unknowns ("TBD", "as needed", "etc.")
   — replace these with explicit open items tagged `[OPEN]`
+- Use `[NEEDS CLARIFICATION]` as a substitute for researching something that
+  can be answered by reading existing artifacts
 
 ---
 
@@ -630,7 +994,7 @@ to the feature that produced them.
 - Artifacts live under `<artifacts.path>/<feature-name>/artifacts/` (configured in `config.yaml`)
 - No artifact is shared between features
 - A feature MAY read another feature's APPROVED artifacts for contextual awareness —
-  mark it clearly: `> Context reference: features/other/artifacts/03-design/design.md`
+  mark it clearly: `> Context reference: features/other/artifacts/04-design/design.md`
 - Never list another feature's artifact as a formal **Input**
 - Never copy content verbatim from another feature — always rephrase in current scope
 
@@ -698,6 +1062,7 @@ approved_by: []
 | Risk | `RISK-NN` | `RISK-02` |
 | Assumption | `A-NN` | `A-05` |
 | Open Item | `OI-NNN` | `OI-001` |
+| Architectural Decision Record | `ADR-NNNN` | `ADR-0003` |
 
 ### Writing Style Rules
 
@@ -820,7 +1185,9 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Non-functional requirements are addressed in the design
 - [ ] Security is addressed (auth, authz, encryption, input validation, secrets)
 - [ ] Every FR-NNN traces to at least one design element
-- [ ] `api-contracts.md` present if external API exists, noted N/A if not
+- [ ] Section 4 (Interface contracts): complete if feature exposes an interface, explicitly N/A otherwise
+- [ ] Step 4.2: ADR assessment performed — ADRs written for qualifying decisions (each researched before writing), or no qualifying decisions noted explicitly
+- [ ] Constitution check run — results recorded for each article, exceptions have ADRs (or N/A if no constitution)
 - [ ] **FR coverage:** [X]/[Y] FR-NNN traced to ≥1 COMP-NN or API-NNN — target: 100%
 - [ ] **Component completeness:** [X]/[Y] COMP-NN have defined responsibility, interface, and error handling — target: 100%
 - [ ] **API completeness:** [X]/[Y] API-NNN have request schema, response schema, and error codes — target: 100% (or N/A)
@@ -829,6 +1196,7 @@ The engineer reviews it conversationally — no PR or commit required.
 
 ### Stage 04 — Implementation Planning
 
+- [ ] Cross-artifact consistency check passed — all FR-NNN designed, no untraced components, no ADR contradictions, open items from prior stages accounted for
 - [ ] Every functional requirement (FR-NNN) maps to at least one user story (US-NNN)
 - [ ] Each story has the canonical format: "As a [role], I want [goal], so that [reason]"
 - [ ] Each story has a Definition of Done with observable, user-facing outcomes
@@ -891,11 +1259,12 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] Test quality assessed — superficial tests and missing coverage flagged
 - [ ] No requirements are untested without explicit justification
 - [ ] No code exists that is not traceable to a requirement
+- [ ] Constitutional compliance check run — all articles assessed, undocumented exceptions flagged (or N/A if no constitution)
 - [ ] Sign-off recommendation is honest — not rubber-stamped
 
 **Approval question:** *"Would you be comfortable deploying this feature to production?"*
 
-### Stage 08 — Liveops Handover
+### Stage 08 — Support Handover
 
 - [ ] Document is written for the correct audience (correct technical depth)
 - [ ] Feature overview explains ops impact, not just what was built
@@ -906,9 +1275,9 @@ The engineer reviews it conversationally — no PR or commit required.
 - [ ] At least one troubleshooting entry per significant failure mode
 - [ ] Rollback procedure is specific and actionable (not "revert the deploy")
 - [ ] Known limitations from the review report are carried into this document
-- [ ] Any gaps requiring liveops input are marked `[REQUIRES INPUT FROM: <role>]`
+- [ ] Any gaps requiring support team input are marked `[REQUIRES INPUT FROM: <role>]`
 
-**Approval question:** *"Could liveops deploy and support this feature from day one using only this document?"*
+**Approval question:** *"Could the support team deploy and support this feature from day one using only this document?"*
 
 ---
 

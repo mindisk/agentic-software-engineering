@@ -168,7 +168,7 @@ Examples:
 .agentic/features/user-auth/artifacts/02-requirements/SRS.md
 .agentic/features/user-auth/artifacts/02-requirements/use-cases.md
 .agentic/features/user-auth/artifacts/03-design/design.md
-.agentic/features/user-auth/artifacts/03-design/api-contracts.md      ← only if external API required
+
 .agentic/features/user-auth/artifacts/04-planning/plan.md
 .agentic/features/user-auth/artifacts/05-implementation/<task-id>-notes.md
 .agentic/features/user-auth/artifacts/06-testing/test-plan.md

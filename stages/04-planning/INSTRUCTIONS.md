@@ -16,7 +16,6 @@ This document is the direct execution guide for Stage 05.
 |----------|--------|----------|
 | `SRS.md` | Stage 02, APPROVED | Yes |
 | `design.md` | Stage 03, APPROVED | Yes |
-| `api-contracts.md` | Stage 03, APPROVED | If it exists |
 
 ---
 
@@ -42,6 +41,44 @@ reference a `TASK-NNN` in `plan.md`, and vice versa.
 
 Understand every component, interface, entity, and endpoint before decomposing tasks.
 Map them against requirements to ensure nothing is missed.
+
+### Step 1.5 — Cross-artifact consistency check
+
+Before planning any tasks, verify that the artifacts produced in Stages 01–03 are
+internally consistent. This is the last opportunity to catch drift before it is
+baked into implementation tasks.
+
+Check each of the following — flag any failure as `[CONSISTENCY GAP]` and surface
+to the engineer before proceeding:
+
+**SRS ↔ Design**
+- Every `FR-NNN` in `SRS.md` maps to at least one design element in `design.md`
+  (component, entity, or endpoint). If any FR-NNN has no design element, the design
+  has a gap — do not plan tasks for it until resolved.
+- No component or entity in `design.md` is entirely untraced to a requirement.
+  If something is designed but not required, it is scope creep — flag it.
+
+**Interface contracts in design.md Section 4** (if feature exposes an interface)
+- Every interface entry in Section 4 of `design.md` corresponds to an `API-NNN` or equivalent ID.
+- No interface identifier in `design.md` is missing a Section 4 entry.
+- No discrepancy in method, path, or response shape.
+
+**ADRs ↔ design.md** (if ADRs exist)
+- No ADR records a decision that the design has since contradicted without a
+  superseding ADR. If a contradiction exists, flag it — do not silently plan
+  around it.
+
+**Open items from prior stages**
+- Collect all `OI-NNN` from `project-brief.md`, `SRS.md`, and `design.md`.
+- Any `[OPEN]` item still unresolved that bears on planning must be flagged.
+  Resolved items need no action.
+
+If all checks pass, note it briefly in the planning document's Assumptions &
+Decisions table: `> Cross-artifact consistency check passed at Stage 04 entry.`
+
+If any `[CONSISTENCY GAP]` is found, stop and surface to the engineer. Do not
+proceed with task decomposition until gaps are resolved or explicitly accepted
+as documented risk.
 
 ### Step 2 — Early question pass
 
@@ -133,6 +170,7 @@ Present a summary to the engineer:
 
 ## Done Criteria
 
+- [ ] Cross-artifact consistency check passed (or gaps surfaced and resolved/accepted)
 - [ ] `user-stories.md` written with all stories, definitions of done, and subtasks
 - [ ] Every `FR-NNN` appears in at least one user story
 - [ ] Every subtask has a `TASK-NNN` reference filled in
@@ -153,8 +191,7 @@ Present a summary to the engineer:
 | Artifact | Source | Status Required | Used For |
 |----------|--------|-----------------|----------|
 | `SRS.md` | Stage 02 | APPROVED | Requirements to story-map and task |
-| `design.md` | Stage 03 | APPROVED | Components and entities to task |
-| `api-contracts.md` | Stage 03 | APPROVED (if exists) | Endpoints to task |
+| `design.md` | Stage 03 | APPROVED | Components, entities, and interface contracts to task |
 
 ### Formal Outputs
 
@@ -169,7 +206,6 @@ Before beginning Stage 04, confirm:
 1. `artifacts/03-design/design.md` exists and has `status: APPROVED`
 2. `artifacts/02-requirements/SRS.md` exists and has `status: APPROVED`
 3. `state.yaml` shows `stage_03: approved`
-4. If `api-contracts.md` was produced in Stage 03, confirm it also has `status: APPROVED`
 
 If any check fails, stop and surface to engineer before proceeding.
 

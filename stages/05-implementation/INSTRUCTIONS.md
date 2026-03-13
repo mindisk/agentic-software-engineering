@@ -18,7 +18,21 @@ surface it and pause until resolved.
 |----------|--------|----------|
 | `plan.md` | Stage 04, APPROVED | Yes |
 | `design.md` | Stage 03, APPROVED | Yes |
-| `api-contracts.md` | Stage 03, APPROVED | If applicable |
+
+---
+
+## Specialist Selection
+
+Before starting each task, identify which specialist to invoke:
+
+| Task implements | Specialist |
+|-----------------|------------|
+| HTTP endpoints, routes, controllers, middleware | `api-engineer` |
+| All other tasks | `senior-software-engineer` |
+
+Check the task's design reference in `plan.md`. If it references `API-NNN` identifiers
+from `design.md` Section 4, use `api-engineer`. Otherwise use `senior-software-engineer`.
+See main agent — Stage 05 delegation for the brief format for each.
 
 ---
 
@@ -77,7 +91,7 @@ Write the minimum production code needed to make all failing tests pass.
 
 **Correctness first:**
 - Implement exactly what the task defines — no more, no less
-- Match the interface/contract defined in design.md and api-contracts.md
+- Match the interface/contract defined in design.md (Section 4)
 - Handle all error cases specified in the task's acceptance criteria
 
 **Code quality:**
@@ -115,7 +129,7 @@ do not present until all items are `[PASS]`:
 [ ] Every acceptance criterion in the task definition has at least one test
 [ ] Tests were written before implementation (TDD red-green-refactor followed)
 [ ] No acceptance criterion is covered only by a trivial or vacuous test
-[ ] Implementation matches the interface defined in design.md / api-contracts.md
+[ ] Implementation matches the interface defined in design.md (Section 4)
 [ ] No hardcoded values, debug code, or TODOs left uncommitted
 [ ] Any deviation from the design is documented in TASK-NNN-notes.md with rationale
 ```
@@ -211,8 +225,7 @@ Implementation notes (one per task) capture: decisions made, deviations from des
 | Artifact | Source | Status Required | Used For |
 |----------|--------|-----------------|----------|
 | `plan.md` | Stage 04 | APPROVED | Task definitions and implementation order |
-| `design.md` | Stage 03 | APPROVED | Architecture and interfaces to implement against |
-| `api-contracts.md` | Stage 03 | APPROVED (if exists) | API contracts to implement |
+| `design.md` | Stage 03 | APPROVED | Architecture and interface contracts to implement against |
 
 ### Formal Outputs
 
@@ -227,7 +240,7 @@ Before beginning Stage 05, confirm:
 1. `artifacts/04-planning/plan.md` exists and has `status: APPROVED`
 2. `artifacts/03-design/design.md` exists and has `status: APPROVED`
 3. `state.yaml` shows `stage_04: approved`
-4. `pipeline.checkpoint_interval_tasks` read from `.agentic/config.yaml` (default: 3)
+4. Read `pipeline.checkpoint_interval_tasks` from `.agentic/config.yaml` (default: 3)
 
 If any check fails, stop and surface to engineer before proceeding.
 
