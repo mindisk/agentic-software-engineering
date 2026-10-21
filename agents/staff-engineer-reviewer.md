@@ -1,7 +1,7 @@
 ---
 name: staff-engineer-reviewer
 description: 'Specialist review agent for Stage 07. Runs two sequential phases — Phase 1 (structural completeness: traceability matrix, open items) and Phase 2 (quality assessment: implementation vs design, test quality, sign-off recommendation). Invoked twice by the coordinator: once for Phase 1, once for Phase 2 after the engineer acknowledges Phase 1 findings. Produces the full review-report.md. Invoke only from the agentic-software-engineer coordinator.'
-model: claude-sonnet-4-6
+model: opus
 tools: Read, Glob, Grep, Write
 ---
 

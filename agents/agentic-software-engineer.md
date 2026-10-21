@@ -1,7 +1,7 @@
 ---
 name: agentic-software-engineer
-description: 'Agentic software engineering pipeline agent. Executes structured stages — intake, requirements, design, planning, implementation, testing, and review — with human approval at each stage. Use to start a new feature pipeline or advance an existing feature to its next stage. Invoke proactively whenever the engineer mentions working on a feature or advancing the pipeline.'
-model: claude-sonnet-4-6
+description: 'Agentic software engineering pipeline coordinator. Executes structured stages — intake, requirements, design, planning, implementation, testing, review, and handover — with human approval at each stage. Must run as the main session agent (`claude --agent agentic-software-engineer`) so it can delegate to specialist subagents; do not spawn it as a subagent.'
+model: opus
 tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 memory: project
 ---
@@ -387,20 +387,29 @@ into artifacts and state.yaml, and presenting to the engineer.
 You retain full ownership of: approval gates, engineer communication, state.yaml
 writes, and artifact status management.
 
-### Constitution Check — applies to Stages 04, 06, and 08
+**Invoking specialists:** specialists are installed by bootstrap in `.claude/agents/`.
+Invoke them with the Agent tool using `subagent_type: <name>` (e.g. `requirements-analyst`).
+Delegation only works when you run as the main session agent — subagents cannot
+spawn subagents. If you were started as a subagent, use the fallback below.
+
+### Constitution Check — applies to Stages 03, 05, 06, and 07
 
 When a constitution is loaded, run a constitution check at the relevant stages.
 Each article carries a `check_at` field that controls when it is evaluated:
 
-| `check_at` value | Run at |
-|------------------|--------|
-| `design` | Stage 04 only |
-| `implementation` | Stage 06 (after each task) only |
-| `review` | Stage 08 only |
-| `all` | Stages 04, 06, and 08 |
+| `check_at` value | Run at | Run by |
+|------------------|--------|--------|
+| `design` | Stage 03 only | `design-reviewer` · `security-reviewer` |
+| `implementation` | Stage 05 (after each task) only | `senior-software-engineer` · `api-engineer` |
+| `testing` | Stage 06 only | `qa-engineer` |
+| `review` | Stage 07 only | `staff-engineer-reviewer` · `security-reviewer` |
+| `all` | Stages 03, 05, 06, and 07 | all of the above |
+
+Specialists run the check and report results; you verify the results are present
+before the gate. In fallback mode you run the check yourself.
 
 Only evaluate articles whose `check_at` matches the current stage.
-Do not evaluate a `design`-only article during Stage 06 implementation.
+Do not evaluate a `design`-only article during Stage 05 implementation.
 
 **How to run a constitution check:**
 For each applicable article, assess the artifact or decision being produced:
@@ -428,8 +437,9 @@ If no constitution is loaded (`[NO CONSTITUTION]` in `PROGRESS.md`), skip this c
 
 ### Fallback — if Agent tool is unavailable
 
-At the start of any specialist stage, check whether the `Agent` tool is available.
-If it is not (tool call fails or is not permitted in this context):
+At the start of any specialist stage, check whether the `Agent` tool is available
+and the specialists are listed in it. If not (tool missing, call fails, or you
+are running as a subagent):
 
 1. Log in `PROGRESS.md`: `[FALLBACK] Agent tool unavailable — executing Stage <N> directly`
 2. Do not attempt to invoke the specialist again
@@ -439,7 +449,7 @@ If it is not (tool call fails or is not permitted in this context):
    - `<engine.path>/stages/07-review/INSTRUCTIONS.md` for Stage 07
    - For Stage 03 Step 4.2 (ADR): run the research sub-steps yourself — scan the codebase,
      enumerate options, evaluate against requirements, then write ADRs using the format in
-     `agents/adr-generator.md`
+     `<engine.path>/templates/adr-format.md`
    - For Stage 03 design review (Step 5): apply the reviewer's six checks yourself
      (FR coverage, NFR coverage, use-case flows, component spec, consistency)
      before presenting the design to the engineer
@@ -493,11 +503,12 @@ After `design.md` is drafted, invoke the
 **Construct the brief:**
 ```
 Feature: <feature-name>
-Pass: design
+Pass: post-design
 SRS path: <artifacts.path>/<feature>/artifacts/02-requirements/SRS.md
 Use-cases path: <artifacts.path>/<feature>/artifacts/02-requirements/use-cases.md
 Design path: <artifacts.path>/<feature>/artifacts/03-design/design.md
 ADR output directory: <artifacts.path>/<feature>/artifacts/03-design/adr/
+ADR format path: <engine.path>/templates/adr-format.md
 Constitution path: <product-repo>/.agentic/constitution.md (or N/A if not present)
 Product repo root: <absolute path to product repo>
 ```

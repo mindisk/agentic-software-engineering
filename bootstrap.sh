@@ -3,7 +3,7 @@
 # Agentic Software Engineering — Bootstrap
 #
 # Sets up a product repo to use the agentic pipeline.
-# Run this once per product repo.
+# Run once per product repo; re-run to update agent copies (config.yaml is kept).
 #
 # Usage:
 #   ./bootstrap.sh <product-repo-path> "<project-name>" [artifacts-option]
@@ -55,6 +55,13 @@ echo ""
 # ------------------------------------------------------------------
 
 mkdir -p "$PRODUCT_REPO/.agentic/features"
+
+CONFIG="$PRODUCT_REPO/.agentic/config.yaml"
+
+if [ -f "$CONFIG" ]; then
+ARTIFACTS_CHOICE="kept"
+echo "Kept existing: .agentic/config.yaml"
+else
 
 # ------------------------------------------------------------------
 # Determine where artifacts (work documents) will be stored.
@@ -131,21 +138,21 @@ EOF
 
 echo "Created: .agentic/config.yaml"
 
+fi
+
 # ------------------------------------------------------------------
-# 2. Place agent file in both supported locations
+# 2. Install coordinator + specialist agents (re-run to update)
 # ------------------------------------------------------------------
 
-AGENT_SRC="$ENGINE_DIR/agents/agentic-software-engineer.md"
-
-# Claude Code
 mkdir -p "$PRODUCT_REPO/.claude/agents"
-cp "$AGENT_SRC" "$PRODUCT_REPO/.claude/agents/agentic-software-engineer.md"
-echo "Created: .claude/agents/agentic-software-engineer.md"
+for AGENT in "$ENGINE_DIR"/agents/*.md; do
+  cp "$AGENT" "$PRODUCT_REPO/.claude/agents/"
+  echo "Installed: .claude/agents/$(basename "$AGENT")"
+done
 
-# GitHub Copilot (.agent.md extension required)
-mkdir -p "$PRODUCT_REPO/.github/agents"
-cp "$AGENT_SRC" "$PRODUCT_REPO/.github/agents/agentic-software-engineer.agent.md"
-echo "Created: .github/agents/agentic-software-engineer.agent.md"
+if [ -d "$PRODUCT_REPO/.github/agents" ]; then
+  echo "Warning: legacy Copilot agents found (no longer supported) — remove: rm -r \"$PRODUCT_REPO/.github/agents\""
+fi
 
 # ------------------------------------------------------------------
 # Done
@@ -156,19 +163,17 @@ echo "Bootstrap complete. Next steps:"
 echo ""
 echo "  1. Commit the pipeline config to your product repo:"
 if [ "$ARTIFACTS_CHOICE" = "1" ]; then
-echo "       git add .agentic/ .claude/ .github/"
+echo "       git add .agentic/ .claude/agents/"
+elif [ "$ARTIFACTS_CHOICE" = "kept" ]; then
+echo "       git add .agentic/config.yaml .claude/agents/"
 else
-echo "       git add .agentic/config.yaml .claude/ .github/"
+echo "       git add .agentic/config.yaml .claude/agents/"
 echo "       # Artifacts are stored outside the repo at: $ARTIFACTS_PATH"
-echo "       # Add that path to .gitignore if needed, or leave it local-only."
 fi
 echo "       git commit -m 'chore: add agentic pipeline'"
 echo ""
-echo "  2. Open the product repo in Claude Code or VSCode Copilot."
+echo "  2. Start the coordinator as the session agent from the product repo:"
+echo "       cd \"$PRODUCT_REPO\" && claude --agent agentic-software-engineer"
 echo ""
-echo "  3. Activate the agent:"
-echo "       Claude Code  → the agent is available automatically"
-echo "       VSCode Copilot → type @agentic-software-engineer in chat"
-echo ""
-echo "  4. Tell the agent what you want to build."
+echo "  3. Tell the agent what you want to build."
 echo ""

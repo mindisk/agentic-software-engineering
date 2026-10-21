@@ -1,7 +1,7 @@
 ---
 name: requirements-analyst
 description: 'Specialist for Stage 02. Receives the approved project-brief and any clarification answers from the qa_log, and produces SRS.md and use-cases.md. Invoked by the agentic-software-engineer coordinator only. Returns both artifacts and a coverage report. Does not communicate with the engineer directly — surfaces questions to the coordinator.'
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Glob, Grep
 ---
 

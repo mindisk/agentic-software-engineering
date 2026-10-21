@@ -1,7 +1,7 @@
 ---
 name: senior-software-engineer
 description: 'Specialist implementation agent for Stage 05. Receives a single TASK-NNN brief from the pipeline coordinator and implements it end-to-end using TDD (red-green-refactor). Invoke only from the agentic-software-engineer coordinator, never directly. Returns completed code, passing tests, and a filled TASK-NNN-notes.md.'
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

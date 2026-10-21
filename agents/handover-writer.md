@@ -1,7 +1,7 @@
 ---
 name: handover-writer
 description: 'Specialist for Stage 08. Reads all approved pipeline artifacts and writes operations-manual.md for the support team audience. Receives audience context and deployment specifics from the coordinator (sourced from the engineer). Invoked by the agentic-software-engineer coordinator only. Returns the completed manual and a gap report. Does not communicate with the engineer directly.'
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Glob, Grep
 ---
 

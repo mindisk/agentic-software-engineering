@@ -1,7 +1,7 @@
 ---
 name: qa-engineer
 description: 'Specialist testing agent for Stage 06. Receives a feature brief from the pipeline coordinator and owns the full testing cycle — test plan, test implementation, execution, and honest results recording. Invoke only from the agentic-software-engineer coordinator, never directly. Returns test-plan.md, test code, and test-results.md.'
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

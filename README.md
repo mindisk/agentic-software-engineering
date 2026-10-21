@@ -12,8 +12,8 @@ compliance. Every output is a structured artifact, not a chat response.
 
 ## How it works
 
-The engine lives in this repository. Your product repos stay clean — they only receive
-a small config file and the main agent definition.
+The engine lives in this repository. Your product repos stay clean — they only
+receive a small config file and copies of the agent definitions.
 
 ```
 agentic-software-engineering/    ← this repo, cloned once anywhere on disk
@@ -30,10 +30,7 @@ your-product-repo/
       <feature-name>/
         state.yaml               ← current stage, approval chain, Q&A log, PR links
         artifacts/               ← all generated documents, organized by stage
-  .claude/agents/
-    agentic-software-engineer.md          ← for Claude Code
-  .github/agents/
-    agentic-software-engineer.agent.md   ← for VSCode Copilot
+  .claude/agents/                ← coordinator + specialists, copied by bootstrap
 ```
 
 The coordinator agent is self-bootstrapping. On every activation it reads `config.yaml`
@@ -177,8 +174,11 @@ The third argument sets where pipeline artifacts are stored:
 
 This creates:
 - `.agentic/config.yaml` — engine path, project name, checkpoint interval
-- `.claude/agents/agentic-software-engineer.md` — agent for Claude Code
-- `.github/agents/agentic-software-engineer.agent.md` — agent for VSCode Copilot
+- `.claude/agents/*.md` — the coordinator and every specialist agent
+
+Re-run bootstrap after pulling engine updates to refresh the agent copies. An existing
+`config.yaml` is kept. Upgrading from an earlier bootstrap? Delete `.github/agents/` —
+Copilot is no longer supported.
 
 ### 3. (Optional) Add a constitution
 
@@ -194,19 +194,20 @@ Or use the interview template to derive one collaboratively with the agent:
 
 ```bash
 cd /path/to/product-repo
-git add .agentic/config.yaml .claude/ .github/
+git add .agentic/config.yaml .claude/agents/
 git commit -m "chore: add agentic pipeline"
 ```
 
 ### 5. Start working
 
-Open the product repo in your AI tool and activate the agent:
+Start Claude Code in the product repo with the coordinator as the session agent:
 
-| Tool | How to activate |
-|------|----------------|
-| **Claude Code** | Agent is available automatically. Describe what you want to build. |
-| **VSCode Copilot Chat** | Type `@agentic-software-engineer` in the chat panel. |
-| **Any AI chat** | Paste the contents of `agents/agentic-software-engineer.md` as the system prompt. |
+```bash
+claude --agent agentic-software-engineer
+```
+
+The coordinator must be the main session agent: subagents cannot spawn subagents,
+so if it is started as a subagent it falls back to running every stage itself.
 
 Tell the agent what feature you want to build. It handles everything from there,
 asking for approval at each stage gate.
@@ -236,7 +237,6 @@ agentic-software-engineering/
 │   ├── agentic-software-engineer.md   ← coordinator (single entry point)
 │   ├── requirements-analyst.md        ← Stage 02 specialist
 │   ├── adr-specialist.md              ← Stage 03: architectural decisions
-│   ├── adr-generator.md               ← ADR format reference
 │   ├── design-reviewer.md             ← Stage 03: adversarial design review
 │   ├── security-reviewer.md           ← Stage 03 + 07: security audit
 │   ├── senior-software-engineer.md    ← Stage 05: general implementation
@@ -277,6 +277,7 @@ agentic-software-engineering/
 │   └── pr-checklist.md                ← stage review checklists
 │
 └── templates/
+    ├── adr-format.md                  ← ADR format reference (used by adr-specialist)
     ├── constitution.md                ← annotated constitution template
     └── constitution-interview.md      ← guided interview to derive a constitution
 ```

@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: 'Security specialist invoked at two points in the pipeline: (1) Stage 03 Step 5b — reviews design.md security section for auth/authz gaps, injection risks, and missing security design elements; (2) Stage 07 Phase 2 — reviews implementation code for OWASP Top 10 vulnerabilities, missing input validation, and secrets exposure. Invoked by the agentic-software-engineer coordinator only. Returns a structured findings report — does not edit artifacts.'
-model: claude-sonnet-4-6
+model: opus
 tools: Read, Glob, Grep
 ---
 

@@ -117,7 +117,7 @@ For each domain where the engineer expressed a clear opinion:
    **Rule:** [MUST/SHALL/NEVER statement]
    **Rationale:** [The reason the engineer gave — use their words where possible]
    **How to check:** [Concrete, specific signal — what to look for in code or artifacts]
-   **check_at:** [design | implementation | review | all]
+   **check_at:** [design | implementation | testing | review | all]
    ```
 
 2. Show all drafted articles to the engineer at once:

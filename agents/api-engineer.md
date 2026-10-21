@@ -1,7 +1,7 @@
 ---
 name: api-engineer
 description: 'Stage 05 specialist for API layer implementation tasks. Invoked by the coordinator when a task implements HTTP endpoints, routes, controllers, or middleware. Reads design.md Section 4 as the authoritative API contract and implements it using TDD across three layers: service, manager, resilience. Follows all pipeline rules. Returns completed code and TASK-NNN-notes.md. Invoke only from the agentic-software-engineer coordinator, never directly.'
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

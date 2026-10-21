@@ -1,6 +1,7 @@
 ---
 name: adr-specialist
 description: 'Stage 03 specialist. Identifies ADR-worthy decisions from requirements and design artifacts, researches each decision before committing to it, and produces structured ADR documents. Handles both the pre-design pass (from requirements) and the post-design pass (from design.md).'
+model: opus
 tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -24,6 +25,7 @@ SRS path: <path>
 Use-cases path: <path>
 Design path: <path or N/A — only for post-design pass>
 ADR output directory: <artifacts.path>/<feature>/artifacts/03-design/adr/
+ADR format path: <engine.path>/templates/adr-format.md
 Constitution path: <path or N/A>
 Product repo root: <absolute path — for codebase research>
 ```
@@ -121,7 +123,7 @@ Do not surface more than one question per decision.
 Using the research output from Step 2, produce `adr-NNNN-<slug>.md` in the
 ADR output directory. Increment the 4-digit number from any existing files.
 
-Follow the ADR format from `agents/adr-generator.md` exactly:
+Follow the ADR format at the `ADR format path` from the brief exactly:
 
 ```markdown
 ---

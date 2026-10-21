@@ -69,7 +69,7 @@ will go wrong, without this rule.]
 **How to check:** [Concrete, specific criteria. What does the agent look for in the
 artifact or code? What is the pass/fail signal?]
 
-**check_at:** [design | implementation | review | all]
+**check_at:** [design | implementation | testing | review | all]
 
 ---
 
@@ -82,7 +82,7 @@ artifact or code? What is the pass/fail signal?]
 **How to check:** [Specific verification criteria — not "review the code" but what to
 look for specifically.]
 
-**check_at:** [design | implementation | review | all]
+**check_at:** [design | implementation | testing | review | all]
 
 ---
 
@@ -94,7 +94,7 @@ look for specifically.]
 
 **How to check:** [Specific verification criteria.]
 
-**check_at:** [design | implementation | review | all]
+**check_at:** [design | implementation | testing | review | all]
 
 ---
 

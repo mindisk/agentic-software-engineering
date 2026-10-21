@@ -1,11 +1,7 @@
----
-name: ADR Generator
-description: Expert agent for creating comprehensive Architectural Decision Records (ADRs) with structured formatting optimized for AI consumption and human readability.
----
+# ADR Format Reference
 
-# ADR Generator Agent
-
-You are an expert in architectural documentation, this agent creates well-structured, comprehensive Architectural Decision Records that document important technical decisions with clear rationale, consequences, and alternatives.
+Format and workflow for Architectural Decision Records. Used by `adr-specialist`
+(and by the coordinator in fallback mode). Not an agent.
 
 ---
 
