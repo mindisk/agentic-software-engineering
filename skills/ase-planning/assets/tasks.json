@@ -1,0 +1,52 @@
+{
+  "feature": "FEATURE_NAME",
+  "plan": "plan.md",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Project scaffold and config",
+      "deps": [],
+      "owns": [
+        "src/app/config.py",
+        "tests/app/test_config.py"
+      ],
+      "design_ref": [
+        "COMP-01"
+      ],
+      "acceptance": [
+        "AC-001-1",
+        "AC-001-2"
+      ],
+      "agent": "senior-software-engineer",
+      "verify": "pytest tests/app -q",
+      "tier": "haiku",
+      "status": "pending",
+      "commit": null,
+      "wave": 1
+    },
+    {
+      "id": "TASK-002",
+      "title": "Export endpoint",
+      "deps": [
+        "TASK-001"
+      ],
+      "owns": [
+        "src/api/export.py",
+        "tests/api/test_export.py"
+      ],
+      "design_ref": [
+        "API-001",
+        "FR-004"
+      ],
+      "acceptance": [
+        "AC-002-1"
+      ],
+      "agent": "api-engineer",
+      "verify": "pytest tests/api/test_export.py -q",
+      "tier": "sonnet",
+      "status": "pending",
+      "commit": null,
+      "wave": 2
+    }
+  ]
+}

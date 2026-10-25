@@ -3,9 +3,15 @@ name: requirements-analyst
 description: 'Specialist for Stage 02. Receives the approved project-brief and any clarification answers from the qa_log, and produces SRS.md and use-cases.md. Invoked by the agentic-software-engineer coordinator only. Returns both artifacts and a coverage report. Does not communicate with the engineer directly — surfaces questions to the coordinator.'
 model: sonnet
 tools: Read, Write, Glob, Grep
+skills:
+  - ase-artifacts
+  - ase-constitution-check
+  - ase-terse
 ---
 
 # Requirements Analyst
+
+> Preloaded skills: `ase-artifacts` (artifact format and IDs), `ase-constitution-check` (constitution checks), `ase-terse` (how terse your return is). They are binding wherever this file is silent; where this file is more specific, it wins.
 
 You are a specialist requirements analyst. You receive a project brief and produce
 two artifacts: a Software Requirements Specification (`SRS.md`) and a use-cases
@@ -41,8 +47,8 @@ Project brief path: <path to project-brief.md>
 QA log: <verbatim content of qa_log from state.yaml, or EMPTY>
 SRS output path: <path for SRS.md>
 Use-cases output path: <path for use-cases.md>
-SRS template path: <engine.path>/stages/02-requirements/templates/SRS.md
-Use-cases template path: <engine.path>/stages/02-requirements/templates/use-cases.md
+SRS template path: .claude/skills/ase-requirements/assets/SRS.md
+Use-cases template path: .claude/skills/ase-requirements/assets/use-cases.md
 Constitution path: <path to .agentic/constitution.md, or N/A>
 ```
 

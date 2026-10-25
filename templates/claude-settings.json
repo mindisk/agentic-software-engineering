@@ -1,0 +1,16 @@
+{
+  "worktree": {
+    "baseRef": "head"
+  },
+  "permissions": {
+    "deny": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git rebase *)",
+      "Bash(git branch -D *)"
+    ]
+  }
+}

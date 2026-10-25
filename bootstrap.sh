@@ -3,7 +3,8 @@
 # Agentic Software Engineering — Bootstrap
 #
 # Sets up a product repo to use the agentic pipeline.
-# Run once per product repo; re-run to update agent copies (config.yaml is kept).
+# Run once per product repo; re-run to update agents and skills
+# (config.yaml and the knowledge base are kept).
 #
 # Usage:
 #   ./bootstrap.sh <product-repo-path> "<project-name>" [artifacts-option]
@@ -61,6 +62,10 @@ CONFIG="$PRODUCT_REPO/.agentic/config.yaml"
 if [ -f "$CONFIG" ]; then
 ARTIFACTS_CHOICE="kept"
 echo "Kept existing: .agentic/config.yaml"
+if ! grep -q '^build:' "$CONFIG"; then
+  echo "Note: config.yaml has no 'build:' block — Stage 05 will use defaults."
+  echo "      See .claude/skills/ase-build/SKILL.md for the available keys."
+fi
 else
 
 # ------------------------------------------------------------------
@@ -129,11 +134,20 @@ artifacts:
   # are not automatically committed with product code.
   path: "$ARTIFACTS_PATH"
 
-pipeline:
-  # Stage 05 implementation: report to engineer after every N tasks completed.
-  # The agent presents a checkpoint summary and waits for acknowledgement before continuing.
-  # Set to 0 to disable checkpoints (agent reports only at full stage end).
-  checkpoint_interval_tasks: 3
+build:
+  # Stage 05 (ase-build skill).
+  executor: waves          # waves = parallel tasks in git worktrees when files don't overlap; serial = one at a time
+  max_parallel: 3
+  fix_rounds: 3            # review/fix rounds per task before escalating to a stronger model
+  checkpoint: none         # none = run continuously, stop only on stop conditions; wave = pause after every wave
+  setup_command: ""        # run in fresh worktrees, e.g. "npm ci"
+  verify_command: ""       # full gate, e.g. "npm test && npm run lint"; asked at Stage 05 if empty
+  panel: [security-reviewer, architecture-reviewer, test-quality-reviewer]
+  hooks: { post_task: "", post_wave: "", post_build: "" }
+
+kb:
+  # Durable project knowledge base: read at Stages 03-05, written by the Compound step (Stage 08).
+  path: .agentic/kb
 EOF
 
 echo "Created: .agentic/config.yaml"
@@ -150,6 +164,56 @@ for AGENT in "$ENGINE_DIR"/agents/*.md; do
   echo "Installed: .claude/agents/$(basename "$AGENT")"
 done
 
+# ------------------------------------------------------------------
+# 3. Install skills (re-run to update)
+# ------------------------------------------------------------------
+
+mkdir -p "$PRODUCT_REPO/.claude/skills"
+for SKILL in "$ENGINE_DIR"/skills/*/; do
+  NAME="$(basename "$SKILL")"
+  rm -rf "${PRODUCT_REPO:?}/.claude/skills/$NAME"
+  cp -R "$SKILL" "$PRODUCT_REPO/.claude/skills/$NAME"
+  echo "Installed: .claude/skills/$NAME"
+done
+
+# ------------------------------------------------------------------
+# 4. Harness settings: worktree base + git deny rules
+# ------------------------------------------------------------------
+
+SETTINGS="$PRODUCT_REPO/.claude/settings.json"
+if [ ! -f "$SETTINGS" ]; then
+  cp "$ENGINE_DIR/templates/claude-settings.json" "$SETTINGS"
+  echo "Created: .claude/settings.json (worktree.baseRef=head, git deny rules)"
+elif ! grep -q '"baseRef"' "$SETTINGS" || ! grep -q 'git push' "$SETTINGS"; then
+  echo "Note: .claude/settings.json exists and lacks the pipeline entries."
+  echo "      The coordinator offers to merge templates/claude-settings.json on first run."
+else
+  echo "Kept existing: .claude/settings.json"
+fi
+
+GITIGNORE="$PRODUCT_REPO/.gitignore"
+for ENTRY in ".ase/" ".claude/worktrees/"; do
+  if ! grep -qxF "$ENTRY" "$GITIGNORE" 2>/dev/null; then
+    echo "$ENTRY" >> "$GITIGNORE"
+    echo "Added to .gitignore: $ENTRY"
+  fi
+done
+
+# ------------------------------------------------------------------
+# 5. Project knowledge base (created once, never overwritten)
+# ------------------------------------------------------------------
+
+KB="$PRODUCT_REPO/.agentic/kb"
+if [ ! -d "$KB" ]; then
+  mkdir -p "$KB"/{solutions,patterns,gotchas,decisions}
+  touch "$KB"/{solutions,patterns,gotchas,decisions}/.gitkeep
+  cp "$ENGINE_DIR/templates/kb-readme.md" "$KB/README.md"
+  cp "$ENGINE_DIR/templates/kb-index.md" "$KB/index.md"
+  echo "Created: .agentic/kb/"
+else
+  echo "Kept existing: .agentic/kb/"
+fi
+
 if [ -d "$PRODUCT_REPO/.github/agents" ]; then
   echo "Warning: legacy Copilot agents found (no longer supported) — remove: rm -r \"$PRODUCT_REPO/.github/agents\""
 fi
@@ -163,12 +227,12 @@ echo "Bootstrap complete. Next steps:"
 echo ""
 echo "  1. Commit the pipeline config to your product repo:"
 if [ "$ARTIFACTS_CHOICE" = "1" ]; then
-echo "       git add .agentic/ .claude/agents/"
-elif [ "$ARTIFACTS_CHOICE" = "kept" ]; then
-echo "       git add .agentic/config.yaml .claude/agents/"
+echo "       git add .agentic/ .claude/ .gitignore"
 else
-echo "       git add .agentic/config.yaml .claude/agents/"
+echo "       git add .agentic/config.yaml .agentic/kb/ .claude/ .gitignore"
+if [ "$ARTIFACTS_CHOICE" != "kept" ]; then
 echo "       # Artifacts are stored outside the repo at: $ARTIFACTS_PATH"
+fi
 fi
 echo "       git commit -m 'chore: add agentic pipeline'"
 echo ""
@@ -176,4 +240,8 @@ echo "  2. Start the coordinator as the session agent from the product repo:"
 echo "       cd \"$PRODUCT_REPO\" && claude --agent agentic-software-engineer"
 echo ""
 echo "  3. Tell the agent what you want to build."
+echo ""
+echo "  Required before Stage 05: the superpowers plugin (/plugin install superpowers)."
+echo "  Implementers use its test-driven-development, verification-before-completion,"
+echo "  receiving-code-review and systematic-debugging skills."
 echo ""

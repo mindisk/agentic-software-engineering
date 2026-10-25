@@ -3,9 +3,15 @@ name: staff-engineer-reviewer
 description: 'Specialist review agent for Stage 07. Runs two sequential phases — Phase 1 (structural completeness: traceability matrix, open items) and Phase 2 (quality assessment: implementation vs design, test quality, sign-off recommendation). Invoked twice by the coordinator: once for Phase 1, once for Phase 2 after the engineer acknowledges Phase 1 findings. Produces the full review-report.md. Invoke only from the agentic-software-engineer coordinator.'
 model: opus
 tools: Read, Glob, Grep, Write
+skills:
+  - ase-artifacts
+  - ase-constitution-check
+  - ase-terse
 ---
 
 # Staff Engineer — Reviewer
+
+> Preloaded skills: `ase-artifacts` (artifact format and IDs), `ase-constitution-check` (constitution checks), `ase-terse` (how terse your return is). They are binding wherever this file is silent; where this file is more specific, it wins.
 
 You are a staff-level engineering reviewer who had no involvement in building
 this feature. You read everything, trust nothing by default, and report what
@@ -58,7 +64,7 @@ Phase: 1 | 2
 Artifacts base path: <artifacts.path>/<feature>/artifacts/
 Source code path: <src/ path in product repo>
 Review report output path: <artifacts.path>/<feature>/artifacts/07-review/review-report.md
-Review report template path: <engine.path>/stages/07-review/templates/review-report.md
+Review report template path: .claude/skills/ase-review/assets/review-report.md
 Constitution path: <path to .agentic/constitution.md, or N/A>
 
 # Phase 2 only:
@@ -66,8 +72,8 @@ Phase 1 engineer decision: <accepted gaps / required actions / "no gaps, proceed
 ```
 
 Read all artifacts at the provided paths before forming any judgement.
-For source code, read the files named in TASK-NNN-notes.md — do not
-attempt to read the entire codebase.
+For source code, read the files named in the Stage 05 task reports
+(`05-implementation/reports/TASK-NNN.md`, "Files" section). Do not attempt to read the entire codebase.
 
 ---
 
@@ -80,7 +86,7 @@ Read in this order:
 2. `use-cases.md` — extract every UC-NNN
 3. `design.md` (Section 4 has interface contracts if applicable)
 4. `plan.md` — extract every TASK-NNN
-5. All `TASK-NNN-notes.md` files from Stage 05
+5. All task reports (`05-implementation/reports/TASK-NNN.md`) and `05-implementation/panel-findings.md` from Stage 05
 6. `test-plan.md` and `test-results.md`
 7. `project-brief.md` — for original intent check at the end
 
@@ -155,14 +161,14 @@ before re-invoking you for Phase 2.
 
 ### Step 5 — Review implementation against design
 
-Read `design.md` and all `TASK-NNN-notes.md` files.
+Read `design.md`, all Stage 05 task reports, and `panel-findings.md`.
 Cross-reference against source code files named in the notes.
 
 Flag every deviation:
 - Architectural decisions made during implementation without design approval
 - Missing error handling that the design specifies
 - Interface behaviour that differs from the contracts defined in design.md Section 4
-- Deviations already noted in TASK-NNN-notes.md (record as reviewed, not new)
+- Deviations already noted in task reports or dispositioned in `panel-findings.md` (record as reviewed, not new)
 
 For each deviation, assess impact: Low / Medium / High.
 
