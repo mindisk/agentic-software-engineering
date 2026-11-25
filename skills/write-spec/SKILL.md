@@ -22,6 +22,6 @@ Templates come from `templates/` in the control plane: `proposal.md`, `spec.md`,
 
 5. **Write the spec.** Copy `templates/spec.md` to `features/<change>/spec.md` and fill it in. Stop at each GATE block and follow its loop. Done when every requirement has an ID, exactly one RFC 2119 keyword and at least one scenario, and every `REQ-` requirement has a `Traces to:` line.
 
-6. **Write the design, if its rule fired.** Copy `templates/design.md` to `features/<change>/design.md`. Set `depth:` to `lite` unless the change needs more, and fill only the sections that depth keeps. Done when every gate is processed or skipped and no `[NEEDS CLARIFICATION]` marker remains.
+6. **Write the design, if its rule fired.** Use the `technical-design` skill to make the decisions. Copy `templates/design.md` to `features/<change>/design.md` and record them there. Set `depth:` to `lite` unless the change needs more, and fill only the sections that depth keeps. Done when every gate is processed or skipped and no `[NEEDS CLARIFICATION]` marker remains.
 
-7. **Hand over.** List the files you wrote. Tell the user to review them, then to run `/to-tickets`.
+7. **Hand over.** List the files you wrote. Tell the user to review them. The next step is the `implementation-plan` skill.

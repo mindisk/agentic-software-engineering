@@ -1,7 +1,7 @@
 {
   "name": "agentic-software-engineering",
   "version": "2.0.0",
-  "description": "Feature folder and spec skills that sit beside mattpocock-skills: start or resume a feature, and write a spec only when one is needed.",
+  "description": "Standalone skills for feature work: feature folder, specs only when needed, design, planning, test-first implementation and debugging.",
   "author": {
     "name": "mindisk"
   },
