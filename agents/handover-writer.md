@@ -1,6 +1,6 @@
 ---
 name: handover-writer
-description: 'Specialist for Stage 08. Reads all approved pipeline artifacts and writes operations-manual.md for the support team audience. Receives audience context and deployment specifics from the coordinator (sourced from the engineer). Invoked by the agentic-software-engineer coordinator only. Returns the completed manual and a gap report. Does not communicate with the engineer directly.'
+description: 'Specialist for Stage 08. Reads all approved pipeline artifacts and writes operations-manual.md for the support team audience. Receives audience context and deployment specifics from the coordinator (sourced from the engineer). Invoked by the `/feature` coordinator only. Returns the completed manual and a gap report. Does not communicate with the engineer directly.'
 model: claude-sonnet-4-6
 tools: Read, Write, Glob, Grep
 ---
@@ -46,7 +46,7 @@ Audience: <technical-engineers | non-technical-operators | mixed>
 Artifacts base path: <path to all pipeline artifacts>
 Source code path: <path to src/>
 Output path: <path for operations-manual.md>
-Template path: <engine.path>/stages/08-handover/templates/operations-manual.md
+Template path: <engine.path>/templates/08-handover/operations-manual.md
 Constitution path: <path to .agentic/constitution.md, or N/A>
 
 # From engineer Q&A (coordinator fills these in):

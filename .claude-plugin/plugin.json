@@ -1,0 +1,9 @@
+{
+  "name": "agentic-software-engineering",
+  "version": "2.0.0",
+  "description": "A feature coordinator for multi-repo work: one control plane, specs only when needed, a planned fan-out to repo worktrees, optional voting panels and three human gates.",
+  "author": {
+    "name": "mindisk"
+  },
+  "repository": "https://github.com/mindisk/agentic-software-engineering"
+}

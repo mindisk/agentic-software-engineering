@@ -1,6 +1,6 @@
 ---
 name: design-reviewer
-description: 'Adversarial reviewer agent for Stage 03. Receives a completed design.md draft and the approved SRS, and independently checks whether every requirement is covered, every component is specified, and the design is internally consistent. Has no knowledge of the design author reasoning — catches gaps that the writer rationalised away. Invoke only from the agentic-software-engineer coordinator after design.md draft is complete.'
+description: 'Adversarial reviewer agent for Stage 03. Receives a completed design.md draft and the approved SRS, and independently checks whether every requirement is covered, every component is specified, and the design is internally consistent. Has no knowledge of the design author reasoning — catches gaps that the writer rationalised away. Invoke only from the `/feature` coordinator after design.md draft is complete.'
 model: claude-sonnet-4-6
 tools: Read, Glob, Grep
 ---

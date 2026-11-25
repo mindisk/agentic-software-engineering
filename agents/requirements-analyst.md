@@ -1,6 +1,6 @@
 ---
 name: requirements-analyst
-description: 'Specialist for Stage 02. Receives the approved project-brief and any clarification answers from the qa_log, and produces SRS.md and use-cases.md. Invoked by the agentic-software-engineer coordinator only. Returns both artifacts and a coverage report. Does not communicate with the engineer directly — surfaces questions to the coordinator.'
+description: 'Specialist for Stage 02. Receives the approved project-brief and any clarification answers from the qa_log, and produces SRS.md and use-cases.md. Invoked by the `/feature` coordinator only. Returns both artifacts and a coverage report. Does not communicate with the engineer directly — surfaces questions to the coordinator.'
 model: claude-sonnet-4-6
 tools: Read, Write, Glob, Grep
 ---
@@ -41,8 +41,8 @@ Project brief path: <path to project-brief.md>
 QA log: <verbatim content of qa_log from state.yaml, or EMPTY>
 SRS output path: <path for SRS.md>
 Use-cases output path: <path for use-cases.md>
-SRS template path: <engine.path>/stages/02-requirements/templates/SRS.md
-Use-cases template path: <engine.path>/stages/02-requirements/templates/use-cases.md
+SRS template path: <engine.path>/templates/02-requirements/SRS.md
+Use-cases template path: <engine.path>/templates/02-requirements/use-cases.md
 Constitution path: <path to .agentic/constitution.md, or N/A>
 ```
 

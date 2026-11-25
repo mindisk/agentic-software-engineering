@@ -11,7 +11,7 @@ Every pipeline run is scoped to a single feature. Artifacts belong exclusively
 to the feature that produced them.
 
 **Rules:**
-- A feature's artifacts live under `.agentic/features/<feature-name>/artifacts/`
+- A feature's artifacts live under `features/<feature-name>/artifacts/`
 - No artifact is shared between features
 - A feature MAY read another feature's APPROVED artifacts for contextual awareness
   (e.g. to understand existing architecture before designing a new component)
@@ -55,13 +55,13 @@ What is covered and what is explicitly out of scope for this document.
 ### 3. Inputs
 Prior artifacts this document was derived from. List with paths:
 ```markdown
-- `.agentic/features/user-auth/artifacts/01-intake/project-brief.md` (v1.0.0, APPROVED)
+- `features/user-auth/artifacts/01-intake/project-brief.md` (v1.0.0, APPROVED)
 ```
 Only list artifacts from the **same feature**. Cross-feature references go in a
 separate **Context References** subsection and are clearly marked as informational only.
 
 ### 4. [Stage-specific content]
-The body of the document. Structure varies by stage — see each stage's INSTRUCTIONS.md.
+The body of the document. Structure varies by stage — see the stage's template in `templates/`.
 
 ### 5. Assumptions & Decisions
 Every assumption made and every decision taken, with rationale.
@@ -149,8 +149,8 @@ DRAFT ──► REVIEW ──► APPROVED
 ```
 
 - **DRAFT** — Agent is producing the document
-- **REVIEW** — PR is open, engineer is reviewing
-- **APPROVED** — PR merged. This version is the source of truth for downstream stages
+- **REVIEW** — the artifact is at a gate, the user is reviewing
+- **APPROVED** — the user approved it. This version is the source of truth for downstream stages
 
 Only APPROVED artifacts are used as formal inputs to the next stage.
 
@@ -159,21 +159,20 @@ Only APPROVED artifacts are used as formal inputs to the next stage.
 ## File Naming Convention
 
 ```
-.agentic/features/<feature-name>/artifacts/<NN-stage-name>/<artifact-name>.md
+features/<feature-name>/artifacts/<NN-stage-name>/<artifact-name>.md
 ```
 
 Examples:
 ```
-.agentic/features/user-auth/artifacts/01-intake/project-brief.md
-.agentic/features/user-auth/artifacts/02-requirements/SRS.md
-.agentic/features/user-auth/artifacts/02-requirements/use-cases.md
-.agentic/features/user-auth/artifacts/03-design/design.md
-
-.agentic/features/user-auth/artifacts/04-planning/plan.md
-.agentic/features/user-auth/artifacts/05-implementation/<task-id>-notes.md
-.agentic/features/user-auth/artifacts/06-testing/test-plan.md
-.agentic/features/user-auth/artifacts/06-testing/test-results.md
-.agentic/features/user-auth/artifacts/07-review/review-report.md
+features/user-auth/artifacts/01-intake/project-brief.md
+features/user-auth/artifacts/02-requirements/SRS.md
+features/user-auth/artifacts/02-requirements/use-cases.md
+features/user-auth/artifacts/03-design/design.md
+features/user-auth/artifacts/04-planning/plan.md
+features/user-auth/artifacts/05-implementation/<task-id>-notes.md
+features/user-auth/artifacts/06-testing/test-plan.md
+features/user-auth/artifacts/06-testing/test-results.md
+features/user-auth/artifacts/07-review/review-report.md
 ```
 
 **Artifact count per feature (typical):** 9 files

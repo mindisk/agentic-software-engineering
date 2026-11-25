@@ -126,5 +126,5 @@ the agent must:
 
 1. Document the unresolved ambiguity clearly in the artifact
 2. Mark the artifact status as `DRAFT — PENDING DECISION`
-3. Add the open question to the PR description with `[UNRESOLVED]` tag
-4. Not proceed to the next stage until the PR comment is addressed
+3. Add the open question to the gate summary with an `[UNRESOLVED]` tag
+4. Not proceed to the next stage until the user answers it

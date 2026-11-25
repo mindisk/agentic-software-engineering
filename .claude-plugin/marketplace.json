@@ -1,0 +1,15 @@
+{
+  "name": "agentic-software-engineering",
+  "owner": {
+    "name": "mindisk"
+  },
+  "description": "Local marketplace for the agentic-software-engineering plugin.",
+  "plugins": [
+    {
+      "name": "agentic-software-engineering",
+      "source": "./",
+      "description": "A feature coordinator for multi-repo work, with skills and worker agents.",
+      "category": "engineering"
+    }
+  ]
+}

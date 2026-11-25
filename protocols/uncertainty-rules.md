@@ -28,7 +28,7 @@ The provided information can be interpreted in multiple valid ways.
 A technically feasible decision has meaningful risk that the engineer should be aware of.
 
 **Response:** Proceed with the lower-risk option, but document the risk prominently
-in the artifact and flag it in the PR description.
+in the artifact and flag it in the gate summary.
 **Example:** Choosing a specific database — note the tradeoffs of that choice.
 
 ---
@@ -69,7 +69,7 @@ Do NOT ask the engineer for Type 6 uncertainties unless they are high-impact.
                    Low          High
                ┌──────────┬──────────────┐
         Low    │ Assume & │  Assume &    │
-CONFIDENCE     │ document │  flag in PR  │
+CONFIDENCE     │ document │  flag at gate│
                ├──────────┼──────────────┤
         High   │  Ask     │  ALWAYS ask  │
                │ (low pri)│  (blocking)  │
