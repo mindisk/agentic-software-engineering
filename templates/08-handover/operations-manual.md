@@ -1,6 +1,6 @@
 ---
 title: Operations Manual
-stage: "08 — Liveops Handover"
+stage: "08 — Support Handover"
 feature: FEATURE_NAME
 version: 1.0.0
 status: DRAFT
@@ -9,14 +9,14 @@ updated: YYYY-MM-DD
 project: PROJECT_NAME
 authors: ""
 approved_by: []
-audience: [e.g. "Liveops engineers", "Support team", "Non-technical operators"]
+audience: [e.g. "Support engineers", "Support team", "Non-technical operators"]
 ---
 
 # Operations Manual — FEATURE_NAME
 
 ## Purpose
 
-This document enables liveops to deploy, configure, monitor, and support
+This document enables support team to deploy, configure, monitor, and support
 FEATURE_NAME in production. It is written for [AUDIENCE] and assumes
 [ASSUMED KNOWLEDGE LEVEL, e.g. "familiarity with the admin console but not
 the codebase"].
@@ -29,7 +29,7 @@ If you cannot find what you need here, escalate to: [CONTACT — see Section 9].
 
 **What it does:**
 [One to two paragraphs. Describe the feature from the operator's perspective —
-what it enables users to do, what it changes in the system, and what liveops
+what it enables users to do, what it changes in the system, and what the support team
 is responsible for.]
 
 **Who uses it:**
@@ -230,7 +230,7 @@ re-enabled."]
 | Role | Name / Team | Contact | For |
 |------|-------------|---------|-----|
 | Feature owner | [Name / team] | [Slack / email] | Architecture and code questions |
-| Liveops lead | [Name / team] | [Slack / email] | Operational decisions and escalations |
+| Support lead | [Name / team] | [Slack / email] | Operational decisions and escalations |
 | On-call | [Rotation name] | [PagerDuty / tool] | Production incidents |
 
 ---

@@ -73,7 +73,7 @@ Rules:
 └── artifacts/
     ├── 01-intake/         project-brief.md or proposal.md
     ├── 02-requirements/   SRS.md + use-cases.md, or spec.md
-    ├── 03-design/         design.md (+ api-contracts.md)
+    ├── 03-design/         design.md (Section 4: interface contracts), adr/
     ├── 04-planning/       plan.md, user-stories.md
     ├── 05-implementation/ TASK-NNN-notes.md
     ├── 06-testing/        <repo>/test-plan.md, <repo>/test-results.md

@@ -168,7 +168,6 @@ features/user-auth/artifacts/01-intake/project-brief.md
 features/user-auth/artifacts/02-requirements/SRS.md
 features/user-auth/artifacts/02-requirements/use-cases.md
 features/user-auth/artifacts/03-design/design.md
-features/user-auth/artifacts/03-design/api-contracts.md      ← only if external API required
 features/user-auth/artifacts/04-planning/plan.md
 features/user-auth/artifacts/05-implementation/<task-id>-notes.md
 features/user-auth/artifacts/06-testing/test-plan.md

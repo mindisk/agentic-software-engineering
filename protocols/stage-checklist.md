@@ -56,13 +56,13 @@ These apply to every stage:
 ## Stage 03 — System Design
 
 
-**Artifacts:** `design.md` (always) + `api-contracts.md` (only if an external API is required)
+**Artifacts:** `design.md` (always — Section 4 contains interface contracts if the feature exposes any interface) + `adr/` (if decisions qualify)
 
 - [ ] Architecture diagram or description is clear at the component level
 - [ ] Every component has a defined responsibility and boundary
 - [ ] Data model covers all entities mentioned in requirements
 - [ ] Relationships between entities are defined (one-to-many, etc.)
-- [ ] `api-contracts.md` present if the feature exposes an external API; explicitly N/A otherwise
+- [ ] `design.md` Section 4 covers every interface the feature exposes; explicitly N/A otherwise
 - [ ] API contracts include: endpoint, method, request schema, response schema, error codes
 - [ ] Technology choices have documented rationale
 - [ ] Non-functional requirements from SRS are addressed in the design (e.g. scalability approach)

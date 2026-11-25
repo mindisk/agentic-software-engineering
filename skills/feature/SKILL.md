@@ -16,8 +16,9 @@ You are the coordinator: the one place where the user controls and oversees the 
 
 1. Read `.agentic/config.yaml`: `project.name`, `engine.path`, `artifacts.path` (default `features`), `repos`, `panel`, `agent_types`. Stop and tell the user if the file or `engine.path` is missing.
 2. Read `<engine.path>/protocols/question-protocol.md` and `uncertainty-rules.md`. They apply to every stage.
-3. **Resume** if `state.yaml` exists. Read it and the three `memory/` files. Answer the five reboot questions before any other action: Where am I? Where am I going? What is the goal? What have I learned? What have I done? Report the current stage, the gates and the open escalations. If a stage is `in_progress`, ask: resume from the last checkpoint, or restart the stage?
-4. **Start** if not. Create the feature folder, `README.md` from [`README-template.md`](README-template.md), `state.yaml` from `STATE.md`, and empty `memory/` files.
+3. **Constitution.** If `.agentic/constitution.md` exists, every specialist gets its path and checks the articles whose `check_at` matches its stage. If it does not exist, offer once to create it with `<engine.path>/templates/constitution-interview.md` and `constitution.md`; record the answer in `memory/PLAN.md`.
+4. **Resume** if `state.yaml` exists. Read it and the three `memory/` files. Answer the five reboot questions before any other action: Where am I? Where am I going? What is the goal? What have I learned? What have I done? Report the current stage, the gates and the open escalations. If a stage is `in_progress`, ask: resume from the last checkpoint, or restart the stage?
+5. **Start** if not. Create the feature folder, `README.md` from [`README-template.md`](README-template.md), `state.yaml` from `STATE.md`, and empty `memory/` files.
 
 ## Stages
 
@@ -31,15 +32,17 @@ For every stage:
 6. Show the user the artifacts and the checklist. Mark the stage `approved` when the user accepts it.
 7. Update `memory/PROGRESS.md`, `memory/PLAN.md` and the README hub. Add discoveries to `memory/FINDINGS.md`.
 
-| # | Stage | Work | Panel default |
-|---|---|---|---|
-| 01 | intake | Goal, trigger and repos in the README. Every repo must be a key in `config.repos`. Then run the `write-spec` skill: it decides with `RULES.md` whether 01–03 need documents, and writes them. | off |
-| 02 | requirements | Written by `write-spec` when its rule fires. Otherwise `skipped` with the reason. | off |
-| 03 | design | `technical-design` skill, written into `03-design/design.md`, when the design rule fires. Add `api-contracts.md` when an external API changes. Otherwise `skipped`. | off |
-| 04 | planning | `implementation-plan` skill: `plan.md` and `user-stories.md`. Then **Gate 1** (below). | on |
-| 05–07 | implementation, testing, review | The build workflow (below). Then **Gate 2**. | 05 off, 06 off, 07 on |
-| — | merge | The user merges, then **Gate 3**. | — |
-| 08 | handover | `operations-manual.md`, when deployment, configuration or operations change. Otherwise `skipped`. | off |
+Specialists are agents in `<engine.path>/agents/`. Start each with the Agent tool (type from `config.agent_types`, if set) and a brief that tells it to read and obey its file, plus the feature folder, the templates and the constitution path.
+
+| # | Stage | Work | Specialists | Panel default |
+|---|---|---|---|---|
+| 01 | intake | Up to five clarifying questions. Goal, trigger and repos in the README; every repo must be a key in `config.repos`. Then the `write-spec` skill decides with `RULES.md` whether 01–03 need documents, and writes the 01 document. | — | off |
+| 02 | requirements | When the rule fires: `SRS.md` + `use-cases.md` (or the project's `spec.md` template). Otherwise `skipped` with the reason. | `requirements-analyst` | off |
+| 03 | design | When the rule fires: `technical-design` decides, `design.md` records it (Section 4: interface contracts), ADRs go to `03-design/adr/`. Then the design review and the security review (Mode A). Otherwise `skipped`. | `adr-specialist` · `design-reviewer` · `security-reviewer` | off |
+| 04 | planning | First a cross-artifact consistency check (brief ↔ requirements ↔ design); fix drift before planning. Then `implementation-plan`: `user-stories.md` and `plan.md`. Then **Gate 1**. | — | on |
+| 05–07 | implementation, testing, review | The build workflow (below). Then **Gate 2**. | `senior-software-engineer` · `api-engineer` · `qa-engineer` · `security-reviewer` (Mode B) · `staff-engineer-reviewer` | 05 off, 06 off, 07 on |
+| — | merge | The user merges, then **Gate 3**. | — | — |
+| 08 | handover | When deployment, configuration or operations change: `operations-manual.md`. Otherwise `skipped`. | `handover-writer` | off |
 
 ## Gate 1: plan
 
@@ -51,7 +54,8 @@ Show the plan summary, the fan-out waves, the panel result and the open items. A
    - One wave per row of the **Fan-out Waves** table, in order.
    - One task object per `#### TASK-NNN — <title>` block: `id`, `title`, `repo` from **Repo:**, `agent` from **Agent:**, `skills` from **Skills:**, `depends_on` from **Depends on:** (`None` is an empty list), `acceptance` from the checkbox lines under **Acceptance criteria:**.
    - Leave out tasks with status `passed`, `accepted`, `dropped` or `merged`, and drop their ids from other tasks' `depends_on`.
-   - Also pass `change`, `featureDir`, `engine`, `templatesDir` (the control plane `templates/`), `repos` (only the repos in the plan), `panel`, `agentTypes` from `config.agent_types`.
+   - Also pass `change`, `featureDir`, `engine`, `templatesDir` (the control plane `templates/`), `constitution` (absolute path, if the file exists), `repos` (only the repos in the plan), `panel`, `agentTypes` from `config.agent_types`.
+   - **Agent:** `senior-software-engineer` (default) or `api-engineer` for API-layer tasks.
    - The workflow rejects bad waves. Fix the plan, not the check.
 2. Run `Workflow({ scriptPath: "<engine.path>/workflow/autonomous-pipeline.js", args })`. Record the run id. If it stops early, offer `resumeFromRunId`.
 3. Save the result to `artifacts/05-implementation/build-result.json`. Set each task status. Add every non-passed item to `escalations` and `error_log`.
@@ -66,7 +70,7 @@ The user merges each worktree branch, or tells you to open the pull requests. Pu
 
 ## Panel
 
-Run `Workflow({ scriptPath: "<engine.path>/workflow/panel.js", args })` with `engine`, `change`, `stage` (the stage number), `lenses` from the table in `<engine.path>/protocols/verification-panel.md`, `panel` from config, `agentType` from `config.agent_types.panelReviewer`, and a `subject` that names the artifact paths and what they must match. On `rework`, revise with the blocking items and run again, up to `panel.rework_rounds`, then escalate. Record each result under `panels`. Never treat `needs_human` as a pass.
+Run `Workflow({ scriptPath: "<engine.path>/workflow/panel.js", args })` with `engine`, `change`, `stage` (the stage name), `lenses` from the table in `<engine.path>/protocols/verification-panel.md`, `panel` from config, `agentType` from `config.agent_types["panel-reviewer"]`, and a `subject` that names the artifact paths and what they must match. On `rework`, revise with the blocking items and run again, up to `panel.rework_rounds`, then escalate. Record each result under `panels`. Never treat `needs_human` as a pass.
 
 ## Rules
 

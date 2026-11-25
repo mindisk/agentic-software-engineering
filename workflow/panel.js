@@ -14,7 +14,7 @@ export const meta = {
 //   lenses:     ["traceability", "waves", "granularity"],
 //   subject:    "<what to review: paths and what it must match>",
 //   panel:      { size, quorum, security_veto },
-//   agentType:  "<installed panel-reviewer name>",   // optional
+//   agentType:  "<installed panel-reviewer type>",   // optional
 // }
 
 const A = (typeof args === 'string' ? JSON.parse(args) : args) || {}

@@ -19,9 +19,9 @@ The feature folder, `state.yaml` and the template lookup are defined in the `fea
 
 4. **Write 01 intake.** Use `01-intake/proposal.md` if that template exists, else `01-intake/project-brief.md`. Write it to `artifacts/01-intake/`.
 
-5. **Write 02 requirements.** Use `02-requirements/spec.md` if that template exists, else `02-requirements/SRS.md` and `02-requirements/use-cases.md`. Write them to `artifacts/02-requirements/`. Done when every requirement has an ID, traces to a use case, and has at least one testable scenario.
+5. **Write 02 requirements.** Use `02-requirements/spec.md` if that template exists, else `02-requirements/SRS.md` and `02-requirements/use-cases.md`. Write them to `artifacts/02-requirements/`. In the coordinator, the `requirements-analyst` agent writes them; outside it, write them yourself. Done when every requirement has an ID, traces to a use case, and has at least one testable scenario.
 
-6. **Write 03 design, if its rule fired.** Use the `technical-design` skill to make the decisions. Record them in `artifacts/03-design/design.md` from the `03-design/design.md` template. Add `api-contracts.md` when an external API changes.
+6. **Write 03 design, if its rule fired.** Use the `technical-design` skill to make the decisions. In the coordinator, the `adr-specialist` agent writes the ADRs to `artifacts/03-design/adr/`. Record them in `artifacts/03-design/design.md` from the `03-design/design.md` template. Interface contracts go in Section 4 of `design.md`.
 
 For every document: follow the template's own instructions (gates, depth, checklists). Done when every section is filled or removed, no placeholder is left, and every open point is in the Open Items table.
 

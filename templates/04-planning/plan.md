@@ -49,7 +49,7 @@ This document is the execution guide for Stage 05.
 >
 > **Fan-out fields — every task MUST carry these** (they drive autonomous Stage-05 fan-out):
 > - **Repo:** the target impl repo, named by its key in the `repos:` map in `.agentic/config.yaml`.
-> - **Agent:** the agent that implements it (default `implementer`).
+> - **Agent:** `senior-software-engineer` (default) or `api-engineer` for API-layer tasks.
 > - **Skills:** extra skills the implementer loads for this task. The implementer always follows
 >   `implementation-execution` and loads the repo's own skills. Empty is allowed.
 > - **Depends on:** the task IDs that must complete first. Drives the dependency graph and waves.
@@ -69,7 +69,7 @@ without follow-up questions. Reference design artifacts directly.]
 - [ ] [Concrete, verifiable criterion]
 
 **Repo:** [repo-key from the `repos:` map]
-**Agent:** implementer
+**Agent:** senior-software-engineer
 **Skills:** []
 **Depends on:** None
 **Effort:** S / M / L / XL
@@ -91,7 +91,7 @@ without follow-up questions. Reference design artifacts directly.]
 - [ ] Migration is reversible
 
 **Repo:** [repo-key from the `repos:` map]
-**Agent:** implementer
+**Agent:** senior-software-engineer
 **Skills:** []
 **Depends on:** TASK-001
 **Effort:** S / M / L / XL
@@ -111,7 +111,7 @@ without follow-up questions. Reference design artifacts directly.]
 - [ ] [Criterion]
 
 **Repo:** [repo-key from the `repos:` map]
-**Agent:** implementer
+**Agent:** senior-software-engineer
 **Skills:** []
 **Depends on:** TASK-002
 **Effort:** S / M / L / XL
@@ -134,7 +134,7 @@ without follow-up questions. Reference design artifacts directly.]
 - [ ] Input is validated
 
 **Repo:** [repo-key from the `repos:` map]
-**Agent:** implementer
+**Agent:** senior-software-engineer
 **Skills:** []
 **Depends on:** TASK-003
 **Effort:** S / M / L / XL
@@ -156,7 +156,7 @@ never assumed to be included in happy-path tasks.]
 - [ ] [Error response matches design.md format]
 
 **Repo:** [repo-key from the `repos:` map]
-**Agent:** implementer
+**Agent:** senior-software-engineer
 **Skills:** []
 **Depends on:** TASK-004
 **Effort:** S

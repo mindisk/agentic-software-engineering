@@ -12,11 +12,11 @@ A Claude Code plugin that coordinates feature work across many repos from one co
 | `implementation-plan` | Writes `plan.md` with `TASK-NNN` blocks (one repo each) and fan-out waves. |
 | `implementation-execution` | Builds a step test first, then self-reviews the diff. |
 | `debugging` | Finds the root cause before any fix. |
-| `agents/` | `implementer`, `qa-engineer`, `reviewer`, `panel-reviewer`. |
+| `agents/` | Specialists: `requirements-analyst`, `adr-specialist`, `adr-generator`, `design-reviewer`, `security-reviewer`, `senior-software-engineer`, `api-engineer`, `qa-engineer`, `staff-engineer-reviewer`, `handover-writer`, `panel-reviewer`. |
 | `workflow/autonomous-pipeline.js` | Implement → test → review across repos, with rework and escalation. |
 | `workflow/panel.js` | One voting panel on one artifact. |
 | `protocols/` | Question protocol, uncertainty rules, artifact standards, stage checklist, panel rules. |
-| `templates/` | One folder per stage, `01-intake` … `08-handover`. |
+| `templates/` | One folder per stage, `01-intake` … `08-handover`, plus `constitution.md` and `constitution-interview.md`. |
 | `PRINCIPLES.md` | The engineering principles the skills review against. |
 
 ## Stages
@@ -27,7 +27,7 @@ The feature folder keeps the v1 layout: `README.md` hub, `state.yaml`, `memory/`
 |---|---|---|---|---|---|
 | 01 | intake | goal, repos; `write-spec` decides 01–03 | `project-brief.md` | off | — |
 | 02 | requirements | only if a rule fires | `SRS.md`, `use-cases.md` | off | — |
-| 03 | design | only if a rule fires | `design.md`, `api-contracts.md` | off | — |
+| 03 | design | only if a rule fires | `design.md`, `adr/` | off | — |
 | 04 | planning | `implementation-plan` | `plan.md`, `user-stories.md` | on | **1: plan** |
 | 05 | implementation | workflow, one task per repo worktree | — | off | |
 | 06 | testing | workflow, per repo | `test-plan.md`, `test-results.md` | off | |
@@ -35,7 +35,9 @@ The feature folder keeps the v1 layout: `README.md` hub, `state.yaml`, `memory/`
 | — | merge | you merge the worktrees | — | — | **3: final** |
 | 08 | handover | only if operations change | `operations-manual.md` | off | — |
 
-Templates live in `templates/<NN-stage>/`. A file at the same path in the control plane's `templates/` takes precedence. `protocols/` holds the question protocol, uncertainty rules, artifact standards, stage checklist and panel rules.
+Templates live in `templates/<NN-stage>/`. A file at the same path in the control plane's `templates/` takes precedence.
+
+An optional `.agentic/constitution.md` in the control plane holds organisation rules. Each article has `check_at`; the specialists check it at design, implementation, testing and review. A violation stops the task as a design gap, or blocks sign-off. `protocols/` holds the question protocol, uncertainty rules, artifact standards, stage checklist and panel rules.
 
 ## Control plane
 
@@ -64,7 +66,7 @@ panel:
   rework_rounds: 2
   security_veto: true
   stages: { planning: true, implementation: false, testing: false, review: true }   # others default off
-agent_types: {}                       # optional: installed agent names, e.g. { implementer: "<plugin>:implementer" }
+agent_types: {}                       # optional: agent name → installed type, e.g. { qa-engineer: "<plugin>:qa-engineer" }
 ```
 
 ## Install

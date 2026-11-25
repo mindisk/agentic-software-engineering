@@ -21,8 +21,10 @@ export const meta = {
 //   repos:      { "<repo-key>": "<abs repo path>" },
 //   templatesDir: "<abs path to the control plane templates/>",   // optional, overrides engine templates
 //   panel:      { size, quorum, rework_rounds, security_veto, stages: { implementation, testing, review } },
-//   agentTypes: { implementer, qaEngineer, reviewer, panelReviewer },   // optional installed names
+//   constitution: "<abs path to .agentic/constitution.md>",        // optional
+//   agentTypes: { "<agent name>": "<installed agent type>" },     // optional
 //   waves: [ [ { id, title, repo, agent, skills: [], acceptance: [], depends_on: [], files: [] } ], ... ],
+//   task.agent: senior-software-engineer (default) | api-engineer
 // }
 
 const A = (typeof args === 'string' ? JSON.parse(args) : args) || {}
@@ -60,6 +62,12 @@ if (unknownRepos.length) {
   })
 }
 
+const IMPLEMENTERS = ['senior-software-engineer', 'api-engineer']
+const badAgent = A.waves.flat().filter((t) => t.agent && !IMPLEMENTERS.includes(t.agent))
+if (badAgent.length) {
+  throw new Error(`autonomous-pipeline: unknown agent on ${badAgent.map((t) => `${t.id}=${t.agent}`).join(', ')}. Use one of: ${IMPLEMENTERS.join(', ')}`)
+}
+
 const PANEL = Object.assign({ size: 3, quorum: 2, rework_rounds: 2, security_veto: true }, A.panel || {})
 const PANEL_ON = { implementation: false, testing: false, review: true }
 for (const k of Object.keys(PANEL_ON)) if (PANEL.stages && k in PANEL.stages) PANEL_ON[k] = !!PANEL.stages[k]
@@ -84,6 +92,7 @@ const LENSES = {
 }
 const PHASE = { implementation: 'Implement', testing: 'Test', review: 'Review' }
 const ART = `${A.featureDir}/artifacts`
+const constitution = A.constitution ? `Constitution: ${A.constitution} — read the articles that apply to your stage; a violation is a blocking gap.` : 'No constitution.'
 const templates = (stageDir) => `Templates: ${A.templatesDir ? `${A.templatesDir}/${stageDir}/ if the file exists there, else ` : ''}${A.engine}/templates/${stageDir}/.`
 
 const VOTE_SCHEMA = {
@@ -151,6 +160,7 @@ const REVIEW_SCHEMA = {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const worktreeFor = (repoKey) => `${REPOS[repoKey]}.worktrees/${A.change}`
+const typeOf = (name) => TYPES[name]
 const opts = (type, label, phaseName, schema) =>
   Object.assign({ label, phase: phaseName }, schema ? { schema } : {}, type ? { agentType: type } : {})
 
@@ -166,7 +176,8 @@ function implementBrief(task, blocking, round) {
   const rework = blocking && blocking.length
     ? `\nREWORK round ${round}. The panel rejected the previous attempt. Address every blocking item; do not repeat the rejected approach:\n${blocking.map((b, i) => `  ${i + 1}. ${b.summary} — ${b.why_blocking}${b.evidence ? ` [${b.evidence}]` : ''}`).join('\n')}\n`
     : ''
-  return `Read and obey ${A.engine}/agents/implementer.md. You implement ONE task of feature "${A.change}".
+  return `Read and obey ${A.engine}/agents/${task.agent || 'senior-software-engineer'}.md. You implement ONE task of feature "${A.change}" test first.
+${constitution}
 
 ${repoContext(task.repo)}
 
@@ -193,7 +204,7 @@ async function convenePanel(stage, subject, labelBase) {
   if (!PANEL_ON[stage]) return null
   const lenses = LENSES[stage].slice(0, PANEL_SIZE)
   const spawn = (lens, suffix) => agent(reviewBrief(stage, lens, subject),
-    opts(TYPES.panelReviewer, `verify:${labelBase}:${lens}${suffix}`, PHASE[stage], VOTE_SCHEMA))
+    opts(typeOf('panel-reviewer'), `verify:${labelBase}:${lens}${suffix}`, PHASE[stage], VOTE_SCHEMA))
   const votes = await parallel(lenses.map((lens) => () => spawn(lens, '')))
   const dead = votes.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0)
   if (dead.length) {
@@ -233,7 +244,7 @@ async function runTask(task) {
   const history = []
   let round = 0
   const implement = (blocking) => agent(implementBrief(task, blocking, round),
-    opts(TYPES[task.agent] || TYPES.implementer, `impl:${task.repo}:${task.id}${round ? `:rework${round}` : ''}`, 'Implement', IMPL_SCHEMA))
+    opts(typeOf(task.agent || 'senior-software-engineer'), `impl:${task.repo}:${task.id}${round ? `:rework${round}` : ''}`, 'Implement', IMPL_SCHEMA))
   let impl = await implement(null)
   while (true) {
     if (!impl) return { task: task.id, repo: task.repo, status: 'NEEDS_HUMAN', reason: 'implementer died', rounds: round, history }
@@ -284,12 +295,13 @@ const tested = (await parallel(repos.map((repoKey) => async () => {
   if (blockedRepos.has(repoKey)) return { repo: repoKey, status: 'SKIPPED', summary: 'a ticket in this repo did not pass' }
   const qa = await agent(
     `Read and obey ${A.engine}/agents/qa-engineer.md. Test repo ${repoKey} for feature "${A.change}".
+${constitution}
 
 ${repoContext(repoKey)}
 
 Feature folder: ${A.featureDir}. Write test-plan.md and test-results.md to ${ART}/06-testing/${repoKey}/. ${templates('06-testing')}
 Return: repo, status (done|blocked), passing, failing, testResultsPath, summary.`,
-    opts(TYPES.qaEngineer, `test:${repoKey}`, 'Test', QA_SCHEMA))
+    opts(typeOf('qa-engineer'), `test:${repoKey}`, 'Test', QA_SCHEMA))
   if (!qa) return { repo: repoKey, status: 'NEEDS_HUMAN', summary: 'qa-engineer died' }
   if (qa.status === 'blocked' || typeof qa.failing !== 'number' || qa.failing > 0) return { repo: repoKey, status: 'FAILED', qa }
   const decision = tally(await convenePanel('testing',
@@ -303,16 +315,33 @@ const openItems = [
   ...deferred.map((id) => `${id}: deferred`),
   ...tested.filter((r) => r.status !== 'passed').map((r) => `tests ${r.repo}: ${r.status}${r.qa ? ` (${r.qa.failing} failing)` : ''}`),
 ]
+const worktreeList = repos.map((k) => `${k}: ${worktreeFor(k)}`).join('; ')
+const openList = openItems.length ? '\n' + openItems.map((s) => `  - ${s}`).join('\n') : 'none'
+// Stage 07: Phase 1 (structure), security Mode B, Phase 2 (quality + verdict).
+const phase1 = await agent(
+  `Read and obey ${A.engine}/agents/staff-engineer-reviewer.md. Run PHASE 1 (structural completeness) for feature "${A.change}" across repos ${repos.join(', ')}.
+Worktrees (diff each against the merge base with its default branch): ${worktreeList}.
+Feature folder: ${A.featureDir}. Start ${ART}/07-review/review-report.md. ${templates('07-review')}
+Open items from the build: ${openList}
+${constitution}`,
+  opts(typeOf('staff-engineer-reviewer'), 'review:phase1', 'Review'))
+const security = await agent(
+  `Read and obey ${A.engine}/agents/security-reviewer.md in MODE B (implementation) for feature "${A.change}".
+Worktrees: ${worktreeList}. Design: ${ART}/03-design/. Write your findings into ${ART}/07-review/security-review.md.
+${constitution}
+Return a one-paragraph summary and the count of blocking findings.`,
+  opts(typeOf('security-reviewer'), 'security:feature', 'Review'))
 const report = await agent(
-  `Read and obey ${A.engine}/agents/reviewer.md. Review feature "${A.change}" across repos ${repos.join(', ')}.
-Worktrees (diff each against the merge base with its default branch): ${repos.map((k) => `${k}: ${worktreeFor(k)}`).join('; ')}.
-Feature folder: ${A.featureDir}. Write ${ART}/07-review/review-report.md. ${templates('07-review')}
-Open items from the build: ${openItems.length ? '\n' + openItems.map((s) => `  - ${s}`).join('\n') : 'none'}
+  `Read and obey ${A.engine}/agents/staff-engineer-reviewer.md. Run PHASE 2 (quality assessment and sign-off) for feature "${A.change}".
+Worktrees: ${worktreeList}. Feature folder: ${A.featureDir}. Complete ${ART}/07-review/review-report.md.
+Phase 1 ${phase1 ? 'is in the report' : 'did not complete — note it as a blocking open item'}. Security review: ${security ? `${ART}/07-review/security-review.md` : 'did not complete — note it as a blocking open item'}.
+Open items from the build: ${openList}
+${constitution}
 Return: summary, recommendation (sign-off | sign-off-with-conditions | rework), conditions, reportPath.`,
-  opts(TYPES.reviewer, 'review:feature', 'Review', REVIEW_SCHEMA))
+  opts(typeOf('staff-engineer-reviewer'), 'review:feature', 'Review', REVIEW_SCHEMA))
 const reviewDecision = tally(await convenePanel('review',
   `Artifact: ${ART}/07-review/review-report.md and its traceability table for feature ${A.change}.`, 'review:feature'))
-const reviewStatus = !report ? 'NEEDS_HUMAN'
+const reviewStatus = !report || !phase1 || !security ? 'NEEDS_HUMAN'
   : report.recommendation === 'rework' ? 'REWORK'
   : reviewDecision.status === 'pass' ? 'passed' : reviewDecision.status.toUpperCase()
 const reviewed = { status: reviewStatus, unreviewed: !!reviewDecision.unreviewed, report, votes: reviewDecision.votes, blocking: reviewDecision.blocking }

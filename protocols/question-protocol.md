@@ -80,7 +80,7 @@ and security architecture.
 **Default assumption:** If you do not answer within 24h, I will proceed with
 Option A (username + password) as it is the most self-contained.
 
-**Blocks:** design.md (data model section), api-contracts.md (auth endpoints)
+**Blocks:** design.md (data model section, interface contracts Section 4)
 ```
 
 ---
