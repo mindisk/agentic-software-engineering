@@ -1,12 +1,11 @@
 ---
 name: write-spec
-description: Decide whether a feature needs a proposal, spec or design, and write only the ones it needs, from the project's templates, into the feature folder.
-disable-model-invocation: true
+description: Decide whether a feature needs a proposal, spec or design, and write only the ones it needs into features/<change>/. Use in the spec stage of the feature coordinator, or when the user asks for a spec.
 ---
 
 # Write spec
 
-Usage: `/write-spec <change>`, run in the control plane after `/feature <change>`.
+Usage: the `/feature` coordinator runs it in the spec stage. The user can also run `/write-spec <change>` in the control plane.
 
 Templates come from `templates/` in the control plane: `proposal.md`, `spec.md`, `design.md` and `TEMPLATE-GUIDE.md`. If a file that a step needs is missing, stop and tell the user which one.
 
@@ -24,4 +23,4 @@ Templates come from `templates/` in the control plane: `proposal.md`, `spec.md`,
 
 6. **Write the design, if its rule fired.** Use the `technical-design` skill to make the decisions. Copy `templates/design.md` to `features/<change>/design.md` and record them there. Set `depth:` to `lite` unless the change needs more, and fill only the sections that depth keeps. Done when every gate is processed or skipped and no `[NEEDS CLARIFICATION]` marker remains.
 
-7. **Hand over.** List the files you wrote. Tell the user to review them. The next step is the `implementation-plan` skill.
+7. **Hand over.** List the files you wrote. Tell the user to review them. The coordinator continues with the plan stage.

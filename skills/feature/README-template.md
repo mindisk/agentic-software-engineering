@@ -6,20 +6,14 @@
 
 ## Repos
 
-| Repo | Worktree branch |
-|---|---|
-| <!-- repo name --> | <!-- branch --> |
+<!-- Keys from the repos map in .agentic/config.yaml. -->
 
-## Tickets
-
-<!-- Ticket keys only. Status lives in the issue tracker. -->
-
-- <!-- KEY-123 — repo — title -->
+- <!-- repo key -->
 
 ## Documents
 
-<!-- Links to proposal.md, spec.md, design.md, if they exist. -->
+<!-- Links to proposal.md, spec.md, design.md, plan.md, review/review-report.md, when they exist. -->
 
 ## Notes
 
-<!-- Dated one-line entries: which spec rule fired, decisions, open points. -->
+<!-- Dated one-line entries for decisions the user made. The coordinator keeps the stage history in state.yaml. -->

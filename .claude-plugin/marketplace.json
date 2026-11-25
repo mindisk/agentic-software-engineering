@@ -8,7 +8,7 @@
     {
       "name": "agentic-software-engineering",
       "source": "./",
-      "description": "Standalone skills for feature work, from idea to merged code.",
+      "description": "A feature coordinator for multi-repo work, with skills and worker agents.",
       "category": "engineering"
     }
   ]

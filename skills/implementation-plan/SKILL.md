@@ -41,7 +41,21 @@ Start from the approved design (`features/<change>/design.md` or `docs/design/..
 ## Output
 
 - Short plans: present them in chat.
-- A feature: save to `features/<change>/plan.md`. Group the steps into tickets. One ticket covers one repo and lists the tickets that block it. The user creates the tickets in the issue tracker and adds the keys to the feature `README.md`.
+- A feature: save to `features/<change>/plan.md`, with the steps grouped into tickets and these two tables at the end. The coordinator parses them, so keep the columns exactly.
+
+  ```markdown
+  ## Tickets
+  | ID | Title | Repo | Acceptance | Depends on | Files |
+  |---|---|---|---|---|---|
+  | T-1 | <outcome> | <repo key> | <criterion>; <criterion> | — | <path>; <path> |
+
+  ## Waves
+  | Wave | Tickets |
+  |---|---|
+  | 1 | T-1, T-2 |
+  ```
+
+  One ticket covers one repo. A ticket's dependencies sit in earlier waves. Tickets in the same wave are in different repos.
 - Other multi-session work: save to `docs/plans/YYYY-MM-DD-<topic>.md`.
 
 Either way, ask for review before executing. Execution follows the `implementation-execution` skill.
