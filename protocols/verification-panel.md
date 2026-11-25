@@ -8,6 +8,7 @@ Per stage, as set in the consumer config (`panel.stages`). Defaults:
 
 | Stage | Panel | Artifact | Lenses |
 |---|---|---|---|
+| spec | off | `proposal.md`, `spec.md`, `design.md` | completeness · testability · consistency |
 | plan | on | `plan.md` | traceability (ticket ↔ spec/design) · waves (dependencies, no cycles, one repo per ticket) · granularity (one reviewable change per ticket) |
 | implement | off | code + tests of one ticket | correctness · test-quality · security-conventions |
 | test | off | test plan, results, test code of one repo | coverage · edge-cases · results-honesty |
@@ -36,6 +37,10 @@ Per stage, as set in the consumer config (`panel.stages`). Defaults:
 3. `accept` votes ≥ `quorum`: pass.
 4. Otherwise: rework. A fresh author gets the union of all blocking items. New reviewers vote again. After `rework_rounds` rounds without a pass: `ESCALATED`.
 
+Rework runs for spec, plan and implement. A rejected test or review panel escalates to Gate 2 at once, because the fix is a code change the user decides on.
+
+The script sets each vote's lens. An `accept` that lists blocking items counts as `reject`.
+
 Never mark an item passed to end a rework loop. Escalate it.
 
 ## Rules for reviewers
@@ -52,5 +57,5 @@ panel:
   quorum: 2           # between ceil(size/2) and size
   rework_rounds: 2
   security_veto: true
-  stages: { plan: true, implement: false, test: false, review: true }
+  stages: { spec: false, plan: true, implement: false, test: false, review: true }
 ```

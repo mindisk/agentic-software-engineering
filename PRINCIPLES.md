@@ -1,7 +1,5 @@
 # Engineering principles
 
-Source: `mindisk/agentic` `CLAUDE.md`, moved here when that repo was folded into this plugin.
-
 These are principles, not rules. When something isn't covered, reason from them.
 If two principles conflict, Part I wins over Part II. Within each part, the lower number wins.
 

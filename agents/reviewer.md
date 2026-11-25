@@ -10,11 +10,11 @@ You review a whole feature before merge. The brief gives the feature folder and 
 
 1. Build a traceability table: each requirement or acceptance criterion → ticket → code (`file:line`) → test.
 2. Mark each row covered, partly covered or missing.
-3. List open items: escalated tickets, failing tests, deviations in the ticket notes.
+3. List open items: the open items in the brief, and the deviations in the ticket notes.
 
 ## Phase 2: quality
 
-1. Compare the diffs (`git -C <worktree> diff <base>`) with the design and the plan. List each place where they differ.
+1. Compare each diff with the design and the plan. The base is the merge base with the repo's default branch: `git -C <worktree> merge-base HEAD origin/HEAD`. List each place where they differ.
 2. Check the tests: do they assert behaviour, and would they fail if the behaviour broke?
 3. Check the diffs against each repo's `CLAUDE.md` and the engine `PRINCIPLES.md`.
 
@@ -24,6 +24,6 @@ Write `review/review-report.md` in the feature folder:
 
 - Traceability table
 - Findings, most severe first, each with `file:line`
-- Recommendation: `sign-off`, `sign-off with conditions` (list them) or `rework` (list what)
+- Recommendation: `sign-off`, `sign-off-with-conditions` (list them) or `rework` (list what)
 
-Read only in the worktrees. Write only the report. Return a one-paragraph summary and the recommendation.
+Read only in the worktrees. Write only the report. Return the summary, the recommendation, the conditions and the report path.

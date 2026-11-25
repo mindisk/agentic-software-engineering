@@ -14,7 +14,7 @@ tickets:                # from plan.md, after Gate 1
   - id: T-1
     repo: <repo-key>
     key: <tracker key>  # empty until the user creates the ticket
-    status: open        # open | passed | escalated | needs_human | deferred | merged
+    status: open        # open | passed | escalated | needs_human | deferred | accepted | dropped | merged
 workflow:
   run_id: <id>          # last autonomous-pipeline run, for resumeFromRunId
   result: <path>        # where the run result was saved
@@ -26,7 +26,7 @@ escalations:            # open items for the next gate
   - item: T-2
     reason: <text>
 log:                    # one line per event
-  - 2026-11-25 created
+  - <date> <event>
 ```
 
 Rules:

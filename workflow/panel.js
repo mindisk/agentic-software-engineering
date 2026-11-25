@@ -24,7 +24,7 @@ if (!Array.isArray(A.lenses) || !A.lenses.length) throw new Error('panel: args.l
 
 const P = Object.assign({ size: 3, quorum: 2, security_veto: true }, A.panel || {})
 const lenses = A.lenses.slice(0, P.size)
-if (P.quorum > lenses.length || P.quorum < Math.ceil(lenses.length / 2)) {
+if (!(P.quorum >= 1) || P.quorum > lenses.length || P.quorum < Math.ceil(lenses.length / 2)) {
   throw new Error(`panel: quorum ${P.quorum} must be between ceil(${lenses.length}/2) and ${lenses.length}`)
 }
 
@@ -61,9 +61,10 @@ if (dead.length) {
   const retry = await parallel(dead.map((i) => () => spawn(lenses[i], ':retry')))
   dead.forEach((i, k) => { if (retry[k]) votes[i] = retry[k] })
 }
-const valid = votes.filter(Boolean)
+// The script, not the model, names the lens. An accept that lists blocking items counts as a reject.
+const valid = votes.map((v, i) => v && { ...v, reviewer: `${A.stage}/${lenses[i]}`, lens: lenses[i], blocking: v.blocking || [], vote: (v.blocking || []).length ? 'reject' : v.vote }).filter(Boolean)
 const accepts = valid.filter((v) => v.vote === 'accept').length
-const securityBlock = P.security_veto && valid.some((v) => /security/.test(v.reviewer) && v.vote === 'reject' && (v.blocking || []).length)
+const securityBlock = P.security_veto && valid.some((v) => /security/.test(v.lens) && v.vote === 'reject' && v.blocking.length)
 const status = valid.length < P.quorum ? 'needs_human'
   : accepts >= P.quorum && !securityBlock ? 'pass'
   : 'rework'
@@ -72,6 +73,6 @@ return {
   stage: A.stage,
   status,
   votes: valid,
-  blocking: valid.filter((v) => v.vote === 'reject').flatMap((v) => v.blocking || []),
+  blocking: valid.filter((v) => v.vote === 'reject').flatMap((v) => v.blocking),
   notes: valid.flatMap((v) => v.notes || []),
 }

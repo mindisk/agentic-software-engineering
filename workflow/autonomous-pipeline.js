@@ -40,12 +40,36 @@ if (unknownRepos.length) {
   throw new Error(`autonomous-pipeline: repos not in args.repos: ${unknownRepos.join(', ')}`)
 }
 
+// Waves: unique ids, dependencies only on earlier waves, one ticket per repo per wave.
+{
+  const waveOf = {}
+  A.waves.forEach((wave, w) => wave.forEach((t) => {
+    if (!t.id || !t.repo) throw new Error(`autonomous-pipeline: every ticket needs id and repo. Got ${JSON.stringify(t)}`)
+    if (waveOf[t.id] !== undefined) throw new Error(`autonomous-pipeline: duplicate ticket id ${t.id}`)
+    waveOf[t.id] = w
+  }))
+  A.waves.forEach((wave, w) => {
+    const repos = wave.map((t) => t.repo)
+    const dup = repos.find((r, i) => repos.indexOf(r) !== i)
+    if (dup) throw new Error(`autonomous-pipeline: wave ${w + 1} has two tickets in repo ${dup}; they would share one worktree`)
+    wave.forEach((t) => (t.depends_on || []).forEach((d) => {
+      if (waveOf[d] === undefined) throw new Error(`autonomous-pipeline: ${t.id} depends on unknown ticket ${d}`)
+      if (waveOf[d] >= w) throw new Error(`autonomous-pipeline: ${t.id} depends on ${d}, which is not in an earlier wave`)
+    }))
+  })
+}
+
 const PANEL = Object.assign({ size: 3, quorum: 2, rework_rounds: 2, security_veto: true }, A.panel || {})
 const PANEL_ON = Object.assign({ implement: false, test: false, review: true }, PANEL.stages || {})
 // Each stage has 3 lenses, so a panel has at most 3 reviewers.
 const PANEL_SIZE = Math.min(PANEL.size, 3)
-if (PANEL.quorum > PANEL_SIZE || PANEL.quorum < Math.ceil(PANEL_SIZE / 2)) {
-  throw new Error(`autonomous-pipeline: panel.quorum ${PANEL.quorum} must be between ceil(size/2) and size (${PANEL_SIZE}, max 3)`)
+if (Object.values(PANEL_ON).some(Boolean)) {
+  if (!(PANEL_SIZE >= 1) || !(PANEL.quorum >= 1) || PANEL.quorum > PANEL_SIZE || PANEL.quorum < Math.ceil(PANEL_SIZE / 2)) {
+    throw new Error(`autonomous-pipeline: panel.quorum ${PANEL.quorum} must be between ceil(size/2) and size (${PANEL_SIZE}, 1 to 3)`)
+  }
+  if (!Number.isInteger(PANEL.rework_rounds) || PANEL.rework_rounds < 0) {
+    throw new Error(`autonomous-pipeline: panel.rework_rounds must be an integer >= 0, got ${PANEL.rework_rounds}`)
+  }
 }
 const TYPES = A.agentTypes || {}
 const WAVES = A.waves
@@ -97,7 +121,7 @@ const IMPL_SCHEMA = {
 
 const QA_SCHEMA = {
   type: 'object',
-  required: ['repo', 'status'],
+  required: ['repo', 'status', 'passing', 'failing'],
   properties: {
     repo: { type: 'string' },
     status: { enum: ['done', 'blocked'] },
@@ -105,6 +129,17 @@ const QA_SCHEMA = {
     passing: { type: 'number' },
     failing: { type: 'number' },
     summary: { type: 'string' },
+  },
+}
+
+const REVIEW_SCHEMA = {
+  type: 'object',
+  required: ['summary', 'recommendation', 'reportPath'],
+  properties: {
+    summary: { type: 'string' },
+    recommendation: { enum: ['sign-off', 'sign-off-with-conditions', 'rework'] },
+    conditions: { type: 'array', items: { type: 'string' } },
+    reportPath: { type: 'string' },
   },
 }
 
@@ -159,7 +194,13 @@ async function convenePanel(stage, subject, labelBase) {
     const retry = await parallel(dead.map((i) => () => spawn(lenses[i], ':retry')))
     dead.forEach((i, k) => { if (retry[k]) votes[i] = retry[k] })
   }
-  return votes.filter(Boolean)
+  return votes.map((v, i) => v && normalise(v, stage, lenses[i])).filter(Boolean)
+}
+
+// The script, not the model, names the lens. An accept that lists blocking items counts as a reject.
+function normalise(v, stage, lens) {
+  const blocking = v.blocking || []
+  return { ...v, reviewer: `${stage}/${lens}`, lens, vote: blocking.length ? 'reject' : v.vote, blocking }
 }
 
 // Deterministic tally. null votes = panel off for this stage.
@@ -168,9 +209,9 @@ function tally(votes) {
   if (votes.length < PANEL.quorum) return { status: 'needs_human', blocking: [], votes }
   const accepts = votes.filter((v) => v.vote === 'accept').length
   const securityBlock = PANEL.security_veto &&
-    votes.some((v) => /security/.test(v.reviewer) && v.vote === 'reject' && (v.blocking || []).length)
+    votes.some((v) => /security/.test(v.lens) && v.vote === 'reject' && v.blocking.length)
   if (accepts >= PANEL.quorum && !securityBlock) return { status: 'pass', blocking: [], votes }
-  return { status: 'rework', blocking: votes.filter((v) => v.vote === 'reject').flatMap((v) => v.blocking || []), votes }
+  return { status: 'rework', blocking: votes.filter((v) => v.vote === 'reject').flatMap((v) => v.blocking), votes }
 }
 
 function taskSubject(task, impl) {
@@ -225,7 +266,8 @@ for (let w = 0; w < WAVES.length; w++) {
   })
   log(`wave ${w + 1}/${WAVES.length}: ${runnable.map((t) => `${t.id}(${t.repo})`).join(' · ')}`)
   const results = await parallel(runnable.map((task) => () => runTask(task)))
-  results.filter(Boolean).forEach((r) => implemented.push(r))
+  results.forEach((r, i) => implemented.push(r ||
+    { task: runnable[i].id, repo: runnable[i].repo, status: 'NEEDS_HUMAN', reason: 'ticket run died', rounds: 0, history: [] }))
 }
 
 phase('Test')
@@ -243,22 +285,31 @@ Feature folder: ${A.featureDir}. Write the test plan and results to ${A.featureD
 Return: repo, status (done|blocked), passing, failing, testResultsPath, summary.`,
     opts(TYPES.qaEngineer, `test:${repoKey}`, 'Test', QA_SCHEMA))
   if (!qa) return { repo: repoKey, status: 'NEEDS_HUMAN', summary: 'qa-engineer died' }
-  if (qa.status === 'blocked' || qa.failing > 0) return { repo: repoKey, status: 'FAILED', qa }
+  if (qa.status === 'blocked' || typeof qa.failing !== 'number' || qa.failing > 0) return { repo: repoKey, status: 'FAILED', qa }
   const decision = tally(await convenePanel('test',
     `Artifact: test plan, results and test code for repo ${repoKey}, in worktree ${worktreeFor(repoKey)} and ${A.featureDir}/testing/${repoKey}/.`, `test:${repoKey}`))
   return { repo: repoKey, status: decision.status === 'pass' ? 'passed' : decision.status.toUpperCase(), unreviewed: !!decision.unreviewed, qa, votes: decision.votes, blocking: decision.blocking }
-}))).filter(Boolean)
+}))).map((r, i) => r || { repo: repos[i], status: 'NEEDS_HUMAN', summary: 'test run died' })
 
 phase('Review')
+const openItems = [
+  ...implemented.filter((r) => r.status !== 'passed').map((r) => `${r.task} (${r.repo}): ${r.status} — ${r.reason || ''}`),
+  ...deferred.map((id) => `${id}: deferred`),
+  ...tested.filter((r) => r.status !== 'passed').map((r) => `tests ${r.repo}: ${r.status}${r.qa ? ` (${r.qa.failing} failing)` : ''}`),
+]
 const report = await agent(
   `Read and obey ${A.engine}/agents/reviewer.md. Review feature "${A.change}" across repos ${repos.join(', ')}.
-Worktrees: ${repos.map((k) => `${k}: ${worktreeFor(k)}`).join('; ')}.
+Worktrees (diff each against the merge base with its default branch): ${repos.map((k) => `${k}: ${worktreeFor(k)}`).join('; ')}.
 Feature folder: ${A.featureDir}. Write ${A.featureDir}/review/review-report.md.
-Return a one-paragraph summary and the recommendation.`,
-  opts(TYPES.reviewer, 'review:feature', 'Review'))
+Open items from the build: ${openItems.length ? '\n' + openItems.map((s) => `  - ${s}`).join('\n') : 'none'}
+Return: summary, recommendation (sign-off | sign-off-with-conditions | rework), conditions, reportPath.`,
+  opts(TYPES.reviewer, 'review:feature', 'Review', REVIEW_SCHEMA))
 const reviewDecision = tally(await convenePanel('review',
   `Artifact: ${A.featureDir}/review/review-report.md and its traceability table for feature ${A.change}.`, 'review:feature'))
-const reviewed = { status: report ? (reviewDecision.status === 'pass' ? 'passed' : reviewDecision.status.toUpperCase()) : 'NEEDS_HUMAN', unreviewed: !!reviewDecision.unreviewed, report, votes: reviewDecision.votes, blocking: reviewDecision.blocking }
+const reviewStatus = !report ? 'NEEDS_HUMAN'
+  : report.recommendation === 'rework' ? 'REWORK'
+  : reviewDecision.status === 'pass' ? 'passed' : reviewDecision.status.toUpperCase()
+const reviewed = { status: reviewStatus, unreviewed: !!reviewDecision.unreviewed, report, votes: reviewDecision.votes, blocking: reviewDecision.blocking }
 
 const escalations = [
   ...implemented.filter((r) => r.status !== 'passed'),
