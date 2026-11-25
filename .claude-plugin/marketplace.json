@@ -1,0 +1,13 @@
+{
+  "name": "agentic-software-engineering",
+  "owner": { "name": "mindisk" },
+  "description": "Local marketplace for the agentic-software-engineering plugin.",
+  "plugins": [
+    {
+      "name": "agentic-software-engineering",
+      "source": "./",
+      "description": "Feature folder and spec skills that sit beside mattpocock-skills.",
+      "category": "engineering"
+    }
+  ]
+}
