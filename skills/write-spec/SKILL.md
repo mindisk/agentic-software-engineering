@@ -1,26 +1,28 @@
 ---
 name: write-spec
-description: Decide whether a feature needs a proposal, spec or design, and write only the ones it needs into features/<change>/. Use in the spec stage of the feature coordinator, or when the user asks for a spec.
+description: Decide with RULES.md whether a feature needs intake, requirements and design documents, and write only those, from the templates, into the feature's artifacts folders. Use in stage 01 of the feature coordinator, or when the user asks for a spec.
 ---
 
 # Write spec
 
-Usage: the `/feature` coordinator runs it in the spec stage. The user can also run `/write-spec <change>` in the control plane.
+The `/feature` coordinator runs this in stage 01. The user can also run `/write-spec <change>` in the control plane.
 
-Templates come from `templates/` in the control plane: `proposal.md`, `spec.md`, `design.md` and `TEMPLATE-GUIDE.md`. If a file that a step needs is missing, stop and tell the user which one.
+The feature folder, `state.yaml` and the template lookup are defined in the `feature` skill's `STATE.md`. Template names below are files under `templates/<NN-stage>/`, found by that lookup.
 
 ## Steps
 
-1. **Read the change.** Read `features/<change>/README.md` and the conversation so far. Done when you can state the goal, the repos touched, and what the change alters.
+1. **Read the change.** Read the feature README hub, `memory/`, `qa_log` and the conversation. Done when you can state the goal, the repos touched, and what the change alters.
 
-2. **Apply the rules.** Read [`RULES.md`](RULES.md) and check every condition against the change. Write the result to the README as the rules file says. If no rule fires, tell the user that the ticket is enough, and stop.
+2. **Apply the rules.** Read [`RULES.md`](RULES.md) and check every condition. Record the result in `state.yaml` as it says. If no rule fires, stop.
 
-3. **Read the guide.** Read `templates/TEMPLATE-GUIDE.md`. Its writing rules apply to every line you write.
+3. **Read the writing rules.** Read `templates/TEMPLATE-GUIDE.md` in the control plane, if it exists, and `protocols/artifact-standards.md` in the engine.
 
-4. **Write the proposal.** Copy `templates/proposal.md` to `features/<change>/proposal.md` and fill it in. Done when every section is filled or removed, and no placeholder comment is left.
+4. **Write 01 intake.** Use `01-intake/proposal.md` if that template exists, else `01-intake/project-brief.md`. Write it to `artifacts/01-intake/`.
 
-5. **Write the spec.** Copy `templates/spec.md` to `features/<change>/spec.md` and fill it in. Stop at each GATE block and follow its loop. Done when every requirement has an ID, exactly one RFC 2119 keyword and at least one scenario, and every `REQ-` requirement has a `Traces to:` line.
+5. **Write 02 requirements.** Use `02-requirements/spec.md` if that template exists, else `02-requirements/SRS.md` and `02-requirements/use-cases.md`. Write them to `artifacts/02-requirements/`. Done when every requirement has an ID, traces to a use case, and has at least one testable scenario.
 
-6. **Write the design, if its rule fired.** Use the `technical-design` skill to make the decisions. Copy `templates/design.md` to `features/<change>/design.md` and record them there. Set `depth:` to `lite` unless the change needs more, and fill only the sections that depth keeps. Done when every gate is processed or skipped and no `[NEEDS CLARIFICATION]` marker remains.
+6. **Write 03 design, if its rule fired.** Use the `technical-design` skill to make the decisions. Record them in `artifacts/03-design/design.md` from the `03-design/design.md` template. Add `api-contracts.md` when an external API changes.
 
-7. **Hand over.** List the files you wrote. Tell the user to review them. The coordinator continues with the plan stage.
+For every document: follow the template's own instructions (gates, depth, checklists). Done when every section is filled or removed, no placeholder is left, and every open point is in the Open Items table.
+
+7. **Hand over.** List the files you wrote and the stages skipped, with the reason. The coordinator shows them to the user.

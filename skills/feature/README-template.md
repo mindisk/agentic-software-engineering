@@ -1,4 +1,12 @@
-# <change>
+---
+title: <change> — Feature Hub
+feature: <change>
+type: feature-index
+stage: "01 — Intake"
+updated: YYYY-MM-DD
+---
+
+# <change> — Feature Hub
 
 **Goal:** <!-- 2-3 sentences: what changes, for whom. -->
 
@@ -10,10 +18,19 @@
 
 - <!-- repo key -->
 
-## Documents
+## Artifacts
 
-<!-- Links to proposal.md, spec.md, design.md, plan.md, review/review-report.md, when they exist. -->
+| Stage | Artifact |
+|---|---|
+| 01 Intake | <!-- link --> |
+| 02 Requirements | <!-- link, or "skipped: reason" --> |
+| 03 Design | <!-- link, or "skipped: reason" --> |
+| 04 Planning | <!-- plan.md, user-stories.md --> |
+| 05 Implementation | <!-- TASK notes --> |
+| 06 Testing | <!-- per repo --> |
+| 07 Review | <!-- review-report.md --> |
+| 08 Handover | <!-- operations-manual.md, or "skipped: reason" --> |
 
-## Notes
+## Memory
 
-<!-- Dated one-line entries for decisions the user made. The coordinator keeps the stage history in state.yaml. -->
+- [PLAN](memory/PLAN.md) · [FINDINGS](memory/FINDINGS.md) · [PROGRESS](memory/PROGRESS.md)

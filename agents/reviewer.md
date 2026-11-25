@@ -16,11 +16,11 @@ You review a whole feature before merge. The brief gives the feature folder and 
 
 1. Compare each diff with the design and the plan. The base is the merge base with the repo's default branch: `git -C <worktree> merge-base HEAD origin/HEAD`. List each place where they differ.
 2. Check the tests: do they assert behaviour, and would they fail if the behaviour broke?
-3. Check the diffs against each repo's `CLAUDE.md` and the engine `PRINCIPLES.md`.
+3. Check the diffs against each repo's `CLAUDE.md`, the engine `PRINCIPLES.md`, and the stage 05–07 items in the engine `protocols/stage-checklist.md`.
 
 ## Report
 
-Write `review/review-report.md` in the feature folder:
+Write `artifacts/07-review/review-report.md` in the feature folder, from the template the brief names. It must contain:
 
 - Traceability table
 - Findings, most severe first, each with `file:line`

@@ -7,26 +7,35 @@ A Claude Code plugin that coordinates feature work across many repos from one co
 | Part | Role |
 |---|---|
 | `/feature <change>` | The coordinator. Runs the stages, the panels and the three human gates. Keeps `features/<change>/state.yaml`. |
-| `write-spec` | Writes a proposal, spec or design only when `RULES.md` needs one. |
+| `write-spec` | Writes stages 01–03 only when `RULES.md` needs them. |
 | `technical-design` | Frames the problem, compares options, recommends one. |
-| `implementation-plan` | Writes `plan.md` with tickets (one repo each) and waves. |
+| `implementation-plan` | Writes `plan.md` with `TASK-NNN` blocks (one repo each) and fan-out waves. |
 | `implementation-execution` | Builds a step test first, then self-reviews the diff. |
 | `debugging` | Finds the root cause before any fix. |
 | `agents/` | `implementer`, `qa-engineer`, `reviewer`, `panel-reviewer`. |
 | `workflow/autonomous-pipeline.js` | Implement → test → review across repos, with rework and escalation. |
 | `workflow/panel.js` | One voting panel on one artifact. |
-| `protocols/verification-panel.md` | The panel rules. |
+| `protocols/` | Question protocol, uncertainty rules, artifact standards, stage checklist, panel rules. |
+| `templates/` | One folder per stage, `01-intake` … `08-handover`. |
 | `PRINCIPLES.md` | The engineering principles the skills review against. |
 
 ## Stages
 
-| Stage | Work | Panel default | Gate |
-|---|---|---|---|
-| shape | goal, repos, questions | — | — |
-| spec | `write-spec`, only if a rule fires | off | you review the documents |
-| plan | `implementation-plan` | on | **1: plan** |
-| build | `autonomous-pipeline.js` | implement off, test off, review on | **2: pre-merge** |
-| merge | you merge the worktrees | — | **3: final** |
+The feature folder keeps the v1 layout: `README.md` hub, `state.yaml`, `memory/` (PLAN, FINDINGS, PROGRESS) and `artifacts/01-intake` … `08-handover`.
+
+| # | Stage | Work | Template(s) | Panel default | Gate |
+|---|---|---|---|---|---|
+| 01 | intake | goal, repos; `write-spec` decides 01–03 | `project-brief.md` | off | — |
+| 02 | requirements | only if a rule fires | `SRS.md`, `use-cases.md` | off | — |
+| 03 | design | only if a rule fires | `design.md`, `api-contracts.md` | off | — |
+| 04 | planning | `implementation-plan` | `plan.md`, `user-stories.md` | on | **1: plan** |
+| 05 | implementation | workflow, one task per repo worktree | — | off | |
+| 06 | testing | workflow, per repo | `test-plan.md`, `test-results.md` | off | |
+| 07 | review | workflow, whole feature | `review-report.md` | on | **2: pre-merge** |
+| — | merge | you merge the worktrees | — | — | **3: final** |
+| 08 | handover | only if operations change | `operations-manual.md` | off | — |
+
+Templates live in `templates/<NN-stage>/`. A file at the same path in the control plane's `templates/` takes precedence. `protocols/` holds the question protocol, uncertainty rules, artifact standards, stage checklist and panel rules.
 
 ## Control plane
 
@@ -34,15 +43,19 @@ A control plane is a repo where your feature folders live. It needs:
 
 ```
 .agentic/config.yaml
-templates/          proposal.md, spec.md, design.md, TEMPLATE-GUIDE.md (for write-spec)
+templates/          optional overrides: <NN-stage>/<file>, and TEMPLATE-GUIDE.md
 features/<change>/  created by /feature
 ```
 
 `.agentic/config.yaml`:
 
 ```yaml
+project:
+  name: My Project
 engine:
-  path: /abs/path/to/this/repo        # the workflow scripts and agent files are read from here
+  path: /abs/path/to/this/repo        # workflow scripts, agents, templates and protocols are read from here
+artifacts:
+  path: features
 repos:
   my-api: /abs/path/to/my-api         # worktrees go to <path>.worktrees/<change>
 panel:
@@ -50,7 +63,7 @@ panel:
   quorum: 2
   rework_rounds: 2
   security_veto: true
-  stages: { spec: false, plan: true, implement: false, test: false, review: true }
+  stages: { planning: true, implementation: false, testing: false, review: true }   # others default off
 agent_types: {}                       # optional: installed agent names, e.g. { implementer: "<plugin>:implementer" }
 ```
 

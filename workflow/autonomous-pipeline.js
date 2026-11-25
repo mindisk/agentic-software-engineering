@@ -19,9 +19,10 @@ export const meta = {
 //   featureDir: "<abs path to features/<change>>",
 //   engine:     "<abs path to the engine checkout>",
 //   repos:      { "<repo-key>": "<abs repo path>" },
-//   panel:      { size, quorum, rework_rounds, security_veto, stages: { implement, test, review } },
-//   agentTypes: { implementer, qaEngineer, reviewer, panelReviewer },   // optional
-//   waves: [ [ { id, title, repo, acceptance: [], depends_on: [], files: [] } ], ... ],
+//   templatesDir: "<abs path to the control plane templates/>",   // optional, overrides engine templates
+//   panel:      { size, quorum, rework_rounds, security_veto, stages: { implementation, testing, review } },
+//   agentTypes: { implementer, qaEngineer, reviewer, panelReviewer },   // optional installed names
+//   waves: [ [ { id, title, repo, agent, skills: [], acceptance: [], depends_on: [], files: [] } ], ... ],
 // }
 
 const A = (typeof args === 'string' ? JSON.parse(args) : args) || {}
@@ -60,7 +61,8 @@ if (unknownRepos.length) {
 }
 
 const PANEL = Object.assign({ size: 3, quorum: 2, rework_rounds: 2, security_veto: true }, A.panel || {})
-const PANEL_ON = Object.assign({ implement: false, test: false, review: true }, PANEL.stages || {})
+const PANEL_ON = { implementation: false, testing: false, review: true }
+for (const k of Object.keys(PANEL_ON)) if (PANEL.stages && k in PANEL.stages) PANEL_ON[k] = !!PANEL.stages[k]
 // Each stage has 3 lenses, so a panel has at most 3 reviewers.
 const PANEL_SIZE = Math.min(PANEL.size, 3)
 if (Object.values(PANEL_ON).some(Boolean)) {
@@ -74,12 +76,15 @@ if (Object.values(PANEL_ON).some(Boolean)) {
 const TYPES = A.agentTypes || {}
 const WAVES = A.waves
 
+// Mirror of the lens table in protocols/verification-panel.md.
 const LENSES = {
-  implement: ['correctness', 'test-quality', 'security-conventions'],
-  test: ['coverage', 'edge-cases', 'results-honesty'],
+  implementation: ['correctness', 'test-quality', 'security-conventions'],
+  testing: ['fr-coverage', 'edge-independence', 'results-honesty'],
   review: ['traceability', 'impl-vs-design', 'test-signoff'],
 }
-const PHASE = { implement: 'Implement', test: 'Test', review: 'Review' }
+const PHASE = { implementation: 'Implement', testing: 'Test', review: 'Review' }
+const ART = `${A.featureDir}/artifacts`
+const templates = (stageDir) => `Templates: ${A.templatesDir ? `${A.templatesDir}/${stageDir}/ if the file exists there, else ` : ''}${A.engine}/templates/${stageDir}/.`
 
 const VOTE_SCHEMA = {
   type: 'object',
@@ -161,16 +166,17 @@ function implementBrief(task, blocking, round) {
   const rework = blocking && blocking.length
     ? `\nREWORK round ${round}. The panel rejected the previous attempt. Address every blocking item; do not repeat the rejected approach:\n${blocking.map((b, i) => `  ${i + 1}. ${b.summary} — ${b.why_blocking}${b.evidence ? ` [${b.evidence}]` : ''}`).join('\n')}\n`
     : ''
-  return `Read and obey ${A.engine}/agents/implementer.md. You implement ONE ticket of feature "${A.change}".
+  return `Read and obey ${A.engine}/agents/implementer.md. You implement ONE task of feature "${A.change}".
 
 ${repoContext(task.repo)}
 
-TICKET ${task.id} — ${task.title}
+TASK ${task.id} — ${task.title}
+Extra skills to load: ${(task.skills && task.skills.length) ? task.skills.join(', ') : 'none'}.
 Acceptance criteria:
 ${(task.acceptance || []).map((c) => `  - ${c}`).join('\n') || '  - (see plan.md)'}
-Feature folder: ${A.featureDir} (plan.md; spec.md and design.md if they exist — read only the sections this ticket needs).
+Feature folder: ${A.featureDir}. Read the task block in ${ART}/04-planning/plan.md, and only the sections it needs from ${ART}/02-requirements/ and ${ART}/03-design/.
 Files expected: ${(task.files || []).join(', ') || '(find them from the design and the code)'}
-Write ticket notes to: ${A.featureDir}/notes/${task.id}.md
+Write task notes to: ${ART}/05-implementation/${task.id}-notes.md
 ${rework}
 Return: taskId, status (done|blocked), a one-paragraph summary, the worktree path, the files changed, the notes path. If a design gap blocks you, return status=blocked with blockedReason.`
 }
@@ -179,7 +185,7 @@ function reviewBrief(stage, lens, subject) {
   return `Read and obey ${A.engine}/agents/panel-reviewer.md and ${A.engine}/protocols/verification-panel.md.
 You are one panel member. Stage: ${stage}. Lens: ${lens}. Feature: ${A.change}.
 ${subject}
-Inputs to judge against: ${A.featureDir}/plan.md, and ${A.featureDir}/spec.md and design.md if they exist.
+Inputs to judge against: ${ART}/04-planning/plan.md, and the documents in ${ART}/02-requirements/ and ${ART}/03-design/ if they exist.
 Set "reviewer" to "${stage}/${lens}". Return the vote object only.`
 }
 
@@ -215,7 +221,7 @@ function tally(votes) {
 }
 
 function taskSubject(task, impl) {
-  return `Artifact: ticket ${task.id} — "${task.title}" in repo ${task.repo}.
+  return `Artifact: task ${task.id} — "${task.title}" in repo ${task.repo}.
 Code and tests: worktree ${impl.worktree || worktreeFor(task.repo)}. Review the diff (git -C <worktree> diff / log) and the changed files: ${(impl.filesChanged || []).join(', ') || '(inspect the worktree)'}.
 Acceptance criteria:
 ${(task.acceptance || []).map((c) => `  - ${c}`).join('\n') || '  - (see plan.md)'}
@@ -227,12 +233,12 @@ async function runTask(task) {
   const history = []
   let round = 0
   const implement = (blocking) => agent(implementBrief(task, blocking, round),
-    opts(TYPES.implementer, `impl:${task.repo}:${task.id}${round ? `:rework${round}` : ''}`, 'Implement', IMPL_SCHEMA))
+    opts(TYPES[task.agent] || TYPES.implementer, `impl:${task.repo}:${task.id}${round ? `:rework${round}` : ''}`, 'Implement', IMPL_SCHEMA))
   let impl = await implement(null)
   while (true) {
     if (!impl) return { task: task.id, repo: task.repo, status: 'NEEDS_HUMAN', reason: 'implementer died', rounds: round, history }
     if (impl.status === 'blocked') return { task: task.id, repo: task.repo, status: 'ESCALATED', reason: impl.blockedReason || 'implementer blocked', rounds: round, history }
-    const decision = tally(await convenePanel('implement', taskSubject(task, impl), `${task.repo}:${task.id}`))
+    const decision = tally(await convenePanel('implementation', taskSubject(task, impl), `${task.repo}:${task.id}`))
     history.push({ round, votes: decision.votes })
     if (decision.status === 'pass') return { task: task.id, repo: task.repo, status: 'passed', unreviewed: !!decision.unreviewed, rounds: round, worktree: impl.worktree, notes: impl.notesPath, history }
     if (decision.status === 'needs_human') return { task: task.id, repo: task.repo, status: 'NEEDS_HUMAN', reason: 'panel could not reach quorum', rounds: round, history }
@@ -281,13 +287,13 @@ const tested = (await parallel(repos.map((repoKey) => async () => {
 
 ${repoContext(repoKey)}
 
-Feature folder: ${A.featureDir}. Write the test plan and results to ${A.featureDir}/testing/${repoKey}/.
+Feature folder: ${A.featureDir}. Write test-plan.md and test-results.md to ${ART}/06-testing/${repoKey}/. ${templates('06-testing')}
 Return: repo, status (done|blocked), passing, failing, testResultsPath, summary.`,
     opts(TYPES.qaEngineer, `test:${repoKey}`, 'Test', QA_SCHEMA))
   if (!qa) return { repo: repoKey, status: 'NEEDS_HUMAN', summary: 'qa-engineer died' }
   if (qa.status === 'blocked' || typeof qa.failing !== 'number' || qa.failing > 0) return { repo: repoKey, status: 'FAILED', qa }
-  const decision = tally(await convenePanel('test',
-    `Artifact: test plan, results and test code for repo ${repoKey}, in worktree ${worktreeFor(repoKey)} and ${A.featureDir}/testing/${repoKey}/.`, `test:${repoKey}`))
+  const decision = tally(await convenePanel('testing',
+    `Artifact: test plan, results and test code for repo ${repoKey}, in worktree ${worktreeFor(repoKey)} and ${ART}/06-testing/${repoKey}/.`, `test:${repoKey}`))
   return { repo: repoKey, status: decision.status === 'pass' ? 'passed' : decision.status.toUpperCase(), unreviewed: !!decision.unreviewed, qa, votes: decision.votes, blocking: decision.blocking }
 }))).map((r, i) => r || { repo: repos[i], status: 'NEEDS_HUMAN', summary: 'test run died' })
 
@@ -300,12 +306,12 @@ const openItems = [
 const report = await agent(
   `Read and obey ${A.engine}/agents/reviewer.md. Review feature "${A.change}" across repos ${repos.join(', ')}.
 Worktrees (diff each against the merge base with its default branch): ${repos.map((k) => `${k}: ${worktreeFor(k)}`).join('; ')}.
-Feature folder: ${A.featureDir}. Write ${A.featureDir}/review/review-report.md.
+Feature folder: ${A.featureDir}. Write ${ART}/07-review/review-report.md. ${templates('07-review')}
 Open items from the build: ${openItems.length ? '\n' + openItems.map((s) => `  - ${s}`).join('\n') : 'none'}
 Return: summary, recommendation (sign-off | sign-off-with-conditions | rework), conditions, reportPath.`,
   opts(TYPES.reviewer, 'review:feature', 'Review', REVIEW_SCHEMA))
 const reviewDecision = tally(await convenePanel('review',
-  `Artifact: ${A.featureDir}/review/review-report.md and its traceability table for feature ${A.change}.`, 'review:feature'))
+  `Artifact: ${ART}/07-review/review-report.md and its traceability table for feature ${A.change}.`, 'review:feature'))
 const reviewStatus = !report ? 'NEEDS_HUMAN'
   : report.recommendation === 'rework' ? 'REWORK'
   : reviewDecision.status === 'pass' ? 'passed' : reviewDecision.status.toUpperCase()

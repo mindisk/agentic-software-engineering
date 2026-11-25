@@ -62,7 +62,7 @@ Before you present the design, check:
 - The simplest option got a fair hearing.
 - There are no TBDs, and no component lacks a clear responsibility.
 
-For significant work, save the design. For a feature, write it to `features/<change>/design.md` from `templates/design.md`. Otherwise use `docs/design/YYYY-MM-DD-<topic>.md`. Present your recommendation first, then the link to the doc, and wait for approval.
+For significant work, save the design. For a feature, write it to `artifacts/03-design/design.md` in the feature folder, from the `03-design/design.md` template. Otherwise use `docs/design/YYYY-MM-DD-<topic>.md`. Present your recommendation first, then the link to the doc, and wait for approval.
 
 Approving the design does not approve implementation. The next step is the `implementation-plan` skill.
 

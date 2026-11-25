@@ -8,11 +8,14 @@ Per stage, as set in the consumer config (`panel.stages`). Defaults:
 
 | Stage | Panel | Artifact | Lenses |
 |---|---|---|---|
-| spec | off | `proposal.md`, `spec.md`, `design.md` | completeness · testability · consistency |
-| plan | on | `plan.md` | traceability (ticket ↔ spec/design) · waves (dependencies, no cycles, one repo per ticket) · granularity (one reviewable change per ticket) |
-| implement | off | code + tests of one ticket | correctness · test-quality · security-conventions |
-| test | off | test plan, results, test code of one repo | coverage · edge-cases · results-honesty |
-| review | on | `review-report.md` | traceability · impl-vs-design · test-signoff |
+| intake | off | `01-intake/*` | scope-clarity · success-criteria · constraint-completeness |
+| requirements | off | `02-requirements/*` | coverage · testability · conflicts |
+| design | off | `03-design/*` | requirement-coverage · completeness · security-consistency |
+| planning | **on** | `04-planning/plan.md`, `user-stories.md` | traceability · waves (no cycles, no two same-repo tasks in one wave) · granularity (Repo/Agent/Skills on every task) |
+| implementation | off | code + tests of one task | correctness · test-quality · security-conventions |
+| testing | off | `06-testing/<repo>/*` + test code | fr-coverage · edge-independence · results-honesty |
+| review | **on** | `07-review/review-report.md` | traceability · impl-vs-design · test-signoff |
+| handover | off | `08-handover/*` | completeness · operability · rollback |
 
 ## The vote
 
@@ -37,7 +40,7 @@ Per stage, as set in the consumer config (`panel.stages`). Defaults:
 3. `accept` votes ≥ `quorum`: pass.
 4. Otherwise: rework. A fresh author gets the union of all blocking items. New reviewers vote again. After `rework_rounds` rounds without a pass: `ESCALATED`.
 
-Rework runs for spec, plan and implement. A rejected test or review panel escalates to Gate 2 at once, because the fix is a code change the user decides on.
+Rework runs for every stage up to implementation. A rejected test or review panel escalates to Gate 2 at once, because the fix is a code change the user decides on.
 
 The script sets each vote's lens. An `accept` that lists blocking items counts as `reject`.
 
@@ -57,5 +60,5 @@ panel:
   quorum: 2           # between ceil(size/2) and size
   rework_rounds: 2
   security_veto: true
-  stages: { spec: false, plan: true, implement: false, test: false, review: true }
+  stages: { planning: true, implementation: false, testing: false, review: true }   # others default off
 ```

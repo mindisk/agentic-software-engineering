@@ -9,7 +9,7 @@ A plan records the decisions an implementer cannot make alone: which files, whic
 
 ## Input
 
-Start from the approved design (`features/<change>/design.md` or `docs/design/...`), the spec, or the requirements stated in the conversation. If neither says what "done" means, go back to `technical-design` or ask.
+Start from the approved design (`artifacts/03-design/design.md` of a feature, or `docs/design/...`), the requirements, or the requirements stated in the conversation. If neither says what "done" means, go back to `technical-design` or ask.
 
 ## Building the plan
 
@@ -41,21 +41,7 @@ Start from the approved design (`features/<change>/design.md` or `docs/design/..
 ## Output
 
 - Short plans: present them in chat.
-- A feature: save to `features/<change>/plan.md`, with the steps grouped into tickets and these two tables at the end. The coordinator parses them, so keep the columns exactly.
-
-  ```markdown
-  ## Tickets
-  | ID | Title | Repo | Acceptance | Depends on | Files |
-  |---|---|---|---|---|---|
-  | T-1 | <outcome> | <repo key> | <criterion>; <criterion> | — | <path>; <path> |
-
-  ## Waves
-  | Wave | Tickets |
-  |---|---|
-  | 1 | T-1, T-2 |
-  ```
-
-  One ticket covers one repo. A ticket's dependencies sit in earlier waves. Tickets in the same wave are in different repos.
+- A feature: write `artifacts/04-planning/plan.md` and `user-stories.md` from the `04-planning/` templates. Each step group becomes one `TASK-NNN` block with **Repo**, **Agent**, **Skills**, **Depends on** and **Acceptance criteria**. One task covers one repo. Fill the **Fan-out Waves** table: dependencies only on earlier waves, never two tasks of one repo in one wave. The coordinator parses these fields, so keep their format.
 - Other multi-session work: save to `docs/plans/YYYY-MM-DD-<topic>.md`.
 
 Either way, ask for review before executing. Execution follows the `implementation-execution` skill.
